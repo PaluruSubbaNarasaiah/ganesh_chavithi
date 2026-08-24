@@ -14,6 +14,8 @@ import Committee from './pages/Committee';
 import Volunteer from './pages/Volunteer';
 import Admin from './pages/Admin';
 
+const githubPagesBasename = '/ganesh_chavithi';
+
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -27,7 +29,7 @@ function ScrollToTop() {
 export default function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={githubPagesBasename}>
         <ScrollToTop />
         <Layout>
           <Routes>
