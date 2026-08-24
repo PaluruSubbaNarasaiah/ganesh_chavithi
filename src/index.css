@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-saffron: #F27D26;
+  --color-gold: #D4AF37;
+  --color-dark-base: #0a0502;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--color-dark-base);
+  color: white;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+.gold-text {
+  color: var(--color-gold);
+}
+.saffron-bg {
+  background-color: var(--color-saffron);
+}
+.saffron-text {
+  color: var(--color-saffron);
+}
+.maroon-glow {
+  box-shadow: 0 0 30px rgba(128, 0, 0, 0.5);
+}
+.glow-text {
+  text-shadow: 0 0 10px rgba(242, 125, 38, 0.6);
+}
+.bg-immersive-gradient {
+  background: radial-gradient(circle at 50% -20%, #3a1510 0%, #0a0502 70%);
+}
