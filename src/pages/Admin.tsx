@@ -787,6 +787,36 @@ const sendDonationInvoiceToWhatsApp = (donation: any) => {
   window.open(`https://wa.me/${cleanMobile}?text=${message}`, '_blank', 'noopener,noreferrer');
 };
 
+const downloadDonationInvoice = (donation: any) => {
+  const invoiceNumber = donation?.invoiceNumber || generateInvoiceNumber(donation);
+  const donorName = donation?.name || 'Guest';
+  const donorMobile = donation?.mobile || donation?.phone || 'Not provided';
+  const amount = formatCurrency(donation?.amount || 0);
+  const date = donation?.date ? new Date(donation.date).toLocaleDateString('en-IN') : 'Today';
+
+  const content = [
+    'Sri Ganga Ghanapathi - Ganesh Chavithi 2026',
+    'Donation Invoice',
+    '=================',
+    `Invoice No: ${invoiceNumber}`,
+    `Donor Name: ${donorName}`,
+    `Mobile: ${donorMobile}`,
+    `Amount: ${amount}`,
+    `Date: ${date}`,
+    `Status: ${donation?.status === 'approved' ? 'Approved' : 'Pending'}`,
+    '',
+    'Thank you for your generous support.'
+  ].join('\n');
+
+  const file = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `invoice-${invoiceNumber}.txt`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
 function DonationsTab() {
   const { donations, setDonations } = useAppContext();
 
@@ -892,7 +922,7 @@ function DonationsTab() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 ml-auto">
+                  <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
                     {don.status === 'pending' && (
                       <>
                         <button onClick={() => updateStatus(don.id, 'approved')} className="p-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 rounded-lg transition-colors tooltip-trigger" title="Approve">
@@ -900,6 +930,37 @@ function DonationsTab() {
                         </button>
                         <button onClick={() => updateStatus(don.id, 'rejected')} className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600/40 rounded-lg transition-colors" title="Decline">
                           <X size={16} />
+                        </button>
+                      </>
+                    )}
+
+                    {don.status === 'approved' && (
+                      <>
+                        <button
+                          onClick={() => {
+                            const nextDonation = {
+                              ...don,
+                              mobile: don.mobile || don.phone || '',
+                              invoiceNumber: don.invoiceNumber || generateInvoiceNumber(don),
+                              invoiceGeneratedAt: don.invoiceGeneratedAt || new Date().toISOString()
+                            };
+                            sendDonationInvoiceToWhatsApp(nextDonation);
+                          }}
+                          className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 rounded-lg hover:bg-emerald-500/30 transition-colors border border-emerald-500/30"
+                          title="Send invoice to donor on WhatsApp"
+                        >
+                          Send Invoice
+                        </button>
+                        <button
+                          onClick={() => downloadDonationInvoice({
+                            ...don,
+                            mobile: don.mobile || don.phone || '',
+                            invoiceNumber: don.invoiceNumber || generateInvoiceNumber(don),
+                          })}
+                          className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors border border-white/10"
+                          title="Download invoice"
+                        >
+                          Download Invoice
                         </button>
                       </>
                     )}
