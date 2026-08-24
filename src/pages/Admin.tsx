@@ -6,6 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { jsPDF } from 'jspdf';
+import QRCode from 'qrcode';
 import heroImage from '../assets/images/regenerated_image_1787252044935.png';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
 
@@ -789,94 +790,249 @@ const sendDonationInvoiceToWhatsApp = (donation: any) => {
   window.open(`https://wa.me/${cleanMobile}?text=${message}`, '_blank', 'noopener,noreferrer');
 };
 
-const downloadDonationInvoice = (donation: any) => {
+const formatInvoiceAmount = (value: number | string) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number(value || 0));
+
+const generateUpiLink = (upiId: string, amount: number, donorName: string) =>
+  `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(donorName)}&am=${amount.toFixed(2)}&cu=INR`;
+
+const drawInvoiceSeal = (doc: jsPDF, x: number, y: number) => {
+  doc.setDrawColor(15, 15, 15);
+  doc.setLineWidth(1.1);
+  doc.circle(x, y, 30, 'S');
+  doc.circle(x, y, 23, 'S');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 15, 15);
+  doc.setFontSize(7);
+
+  const sealText = 'Sri Ganga Ghanapathi';
+  const radius = 26;
+  for (let i = 0; i < sealText.length; i++) {
+    const angle = ((-Math.PI / 2) + (i / sealText.length) * Math.PI * 1.8);
+    const tx = x + Math.cos(angle) * radius;
+    const ty = y + Math.sin(angle) * radius;
+    doc.text(sealText[i], tx, ty, { angle: i > 0 ? 360 - ((i / sealText.length) * 180) : 0, align: 'center' });
+  }
+
+  doc.setFontSize(9);
+  doc.text('G', x, y + 4, { align: 'center' });
+  doc.setLineWidth(0.8);
+  doc.moveTo(x - 12, y + 16);
+  doc.lineTo(x + 12, y + 16);
+  doc.stroke();
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  doc.text('Allagadda', x, y + 23, { align: 'center' });
+};
+
+const drawInvoiceSignature = (doc: jsPDF, x: number, y: number) => {
+  doc.setDrawColor(40, 40, 40);
+  doc.setLineWidth(1.1);
+  doc.setFont('times', 'italic');
+  doc.setFontSize(28);
+  doc.text('P. S. Narasaiah', x, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('Signature', x + 20, y + 18);
+};
+
+const downloadDonationInvoice = async (donation: any) => {
   const invoiceNumber = donation?.invoiceNumber || generateInvoiceNumber(donation);
   const donorName = donation?.name || 'Guest';
   const donorMobile = donation?.mobile || donation?.phone || 'Not provided';
+  const donorAddress = donation?.address || 'Adranam Street, ALLAGADDA\nAndhra Pradesh - 518543';
   const amount = Number(donation?.amount || 0);
-  const date = donation?.date ? new Date(donation.date).toLocaleDateString('en-IN') : 'Today';
-  const paymentStatus = donation?.status === 'approved' ? 'Approved' : donation?.status === 'rejected' ? 'Rejected' : 'Pending';
+  const invoiceDate = donation?.date ? new Date(donation.date).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
+  const upiId = donation?.upiId || 'ganeshchavithi@upi';
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 42;
+  const borderX = 18;
+  const borderY = 18;
+  const innerWidth = pageWidth - borderX * 2;
 
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
+  doc.setDrawColor(17, 168, 199);
+  doc.setLineWidth(1.6);
+  doc.roundedRect(borderX, borderY, innerWidth, pageHeight - borderY * 2, 16, 16, 'S');
 
-  doc.addImage(logoImage, 'PNG', 72, 18, 430, 330);
+  doc.addImage(logoImage, 'PNG', 34, 34, 84, 84);
+  doc.addImage(logoImage, 'PNG', pageWidth - 118, 34, 84, 84);
 
-  doc.setFillColor(123, 60, 15);
-  doc.roundedRect(margin, 350, pageWidth - margin * 2, 70, 12, 12, 'F');
-
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(17, 168, 199);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text('DONATION RECEIPT', margin + 18, 390);
-  doc.setFontSize(10);
-  doc.setTextColor(255, 230, 180);
-  doc.text('Ganesh Chavithi 2026 • Sri Ganga Ghanapathi • Ashramam Street, Allagadda', margin + 18, 408);
+  doc.setFontSize(22);
+  doc.text('Donation Receipt Invoice', pageWidth / 2, 64, { align: 'center' });
 
-  doc.setFillColor(247, 244, 239);
-  doc.roundedRect(margin, 432, pageWidth - margin * 2, 110, 12, 12, 'F');
+  doc.setDrawColor(17, 168, 199);
+  doc.setLineWidth(1.2);
+  doc.line(70, 86, pageWidth - 70, 86);
 
-  doc.setTextColor(38, 38, 38);
+  doc.setTextColor(17, 168, 199);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.text('Donation Receipt', margin + 18, 170);
+  doc.setFontSize(16);
+  doc.text('Sri Ganga Ghananathi', pageWidth / 2, 108, { align: 'center' });
 
+  doc.setTextColor(40, 40, 40);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  const info = [
-    ['Invoice No', invoiceNumber],
-    ['Donor Name', donorName],
-    ['Mobile', donorMobile],
-    ['Donation Amount', `₹${amount.toLocaleString('en-IN')}`],
-    ['Date', date],
-    ['Status', paymentStatus]
-  ];
+  doc.setFontSize(10);
+  doc.text('Adranam Street, Allagadda, Andhra Pradesh, 518543', pageWidth / 2, 124, { align: 'center' });
+  doc.text('Mobile Number: 8970584121', pageWidth / 2, 138, { align: 'center' });
 
-  info.forEach(([label, value], index) => {
-    const y = 198 + index * 22;
-    doc.setTextColor(80, 80, 80);
-    doc.setFont('helvetica', 'bold');
-    doc.text(String(label), margin + 18, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(value), margin + 160, y);
+  const leftX = 56;
+  const rightX = 430;
+  const detailsY = 182;
+
+  doc.setTextColor(17, 168, 199);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('Client Name', leftX, detailsY);
+  doc.text(':', leftX + 90, detailsY);
+  doc.text(donorName, leftX + 105, detailsY);
+
+  doc.text('Client Address', leftX, detailsY + 28);
+  doc.text(':', leftX + 90, detailsY + 28);
+  const addrLines = donorAddress.split('\n');
+  addrLines.forEach((line: string, index: number) => {
+    doc.text(line, leftX + 105, detailsY + 28 + index * 14);
   });
 
+  doc.text('Mobile', leftX, detailsY + 62);
+  doc.text(':', leftX + 90, detailsY + 62);
+  doc.text(String(donorMobile), leftX + 105, detailsY + 62);
+
+  doc.text('Invoice No', rightX, detailsY);
+  doc.text(':', rightX + 74, detailsY);
+  doc.text(invoiceNumber, rightX + 84, detailsY);
+
+  doc.text('Invoice Date', rightX, detailsY + 28);
+  doc.text(':', rightX + 74, detailsY + 28);
+  doc.text(invoiceDate, rightX + 84, detailsY + 28);
+
+  const tableX = 38;
+  const tableY = 262;
+  const tableWidth = pageWidth - tableX * 2;
+
+  doc.setFillColor(17, 168, 199);
+  doc.roundedRect(tableX, tableY, tableWidth, 24, 6, 6, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('S.No', tableX + 18, tableY + 16);
+  doc.text('Product', tableX + 115, tableY + 16);
+  doc.text('Rate', tableX + 285, tableY + 16);
+  doc.text('Qty', tableX + 345, tableY + 16);
+  doc.text('Amount', tableX + 398, tableY + 16);
+
   doc.setFillColor(255, 255, 255);
-  doc.roundedRect(margin + 18, 355, pageWidth - margin * 2 - 36, 90, 10, 10, 'F');
-  doc.setDrawColor(212, 175, 55);
-  doc.setLineWidth(1);
-  doc.roundedRect(margin + 18, 355, pageWidth - margin * 2 - 36, 90, 10, 10, 'S');
+  doc.roundedRect(tableX, tableY + 24, tableWidth, 52, 6, 6, 'F');
+  doc.setDrawColor(200, 225, 231);
+  doc.setLineWidth(0.7);
+  doc.line(tableX, tableY + 24 + 26, tableX + tableWidth, tableY + 24 + 26);
 
+  doc.setTextColor(30, 30, 30);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('1', tableX + 20, tableY + 46);
+  doc.text('Donation', tableX + 116, tableY + 46);
+  doc.text(formatInvoiceAmount(amount), tableX + 270, tableY + 46);
+  doc.text('1', tableX + 350, tableY + 46);
+  doc.text(formatInvoiceAmount(amount), tableX + 390, tableY + 46);
+
+  const totalsBoxX = 420;
+  const totalsBoxY = 338;
+  const totalsBoxW = 130;
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(totalsBoxX, totalsBoxY, totalsBoxW, 62, 6, 6, 'F');
+  doc.setDrawColor(17, 168, 199);
+  doc.setLineWidth(0.8);
+  doc.line(totalsBoxX, totalsBoxY + 30, totalsBoxX + totalsBoxW, totalsBoxY + 30);
   doc.setTextColor(60, 60, 60);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('Receipt Summary', margin + 32, 381);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.text('Purpose: Ganesh Chavithi Festival Donation', margin + 32, 402);
-  doc.text('Receipt Type: Charitable Contribution', margin + 32, 418);
-  doc.text('GST / Tax Status: Exempt / Not Applicable', margin + 32, 434);
+  doc.text('Sub Total', totalsBoxX + 14, totalsBoxY + 20);
+  doc.text(formatInvoiceAmount(amount), totalsBoxX + 80, totalsBoxY + 20);
+  doc.setFillColor(17, 168, 199);
+  doc.roundedRect(totalsBoxX, totalsBoxY + 30, totalsBoxW, 32, 0, 0, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Total', totalsBoxX + 14, totalsBoxY + 50);
+  doc.text(formatInvoiceAmount(amount), totalsBoxX + 80, totalsBoxY + 50);
 
-  doc.setDrawColor(212, 175, 55);
-  doc.line(margin + 18, 468, pageWidth - margin - 18, 468);
-
+  doc.setDrawColor(17, 168, 199);
+  doc.setLineWidth(1.2);
+  doc.roundedRect(38, 420, pageWidth - 76, 48, 8, 8, 'S');
+  doc.setTextColor(17, 168, 199);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Amount in words:', 52, 438);
   doc.setTextColor(35, 35, 35);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('Sri Ganga Ghanapathi Committee', margin + 18, 498);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text('Ganesh Chavithi 2026 • Ashramam Street, Allagadda', margin + 18, 518);
-  doc.text('Thank you for your generous support and devotion.', margin + 18, 538);
+  doc.text('Five Hundred Only', 160, 438);
 
-  doc.setTextColor(120, 120, 120);
+  const paymentY = 490;
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(38, paymentY, pageWidth - 76, 74, 8, 8, 'F');
+  doc.setDrawColor(17, 168, 199);
+  doc.setLineWidth(1);
+  doc.roundedRect(38, paymentY, pageWidth - 76, 74, 8, 8, 'S');
+
+  doc.setTextColor(17, 168, 199);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('QR Code Type', 54, paymentY + 22);
+  doc.text(':', 155, paymentY + 22);
+  doc.text('UPI Payment', 165, paymentY + 22);
+
+  doc.text('UPI ID', 54, paymentY + 42);
+  doc.text(':', 155, paymentY + 42);
+  doc.text(upiId, 165, paymentY + 42);
+
+  doc.text('Total', 54, paymentY + 62);
+  doc.text(':', 155, paymentY + 62);
+  doc.text(formatInvoiceAmount(amount), 165, paymentY + 62);
+
+  const qrData = await QRCode.toDataURL(generateUpiLink(upiId, amount, donorName), {
+    width: 120,
+    margin: 1,
+    errorCorrectionLevel: 'M'
+  });
+
+  doc.addImage(qrData, 'PNG', pageWidth - 180, paymentY + 6, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(40, 40, 40);
+  doc.setFontSize(8);
+  doc.text('Scan and pay with any UPI / IMPS app', pageWidth - 170, paymentY + 110, { align: 'center' });
+
+  doc.setDrawColor(17, 168, 199);
+  doc.setLineWidth(1);
+  doc.line(38, 584, pageWidth - 38, 584);
+
+  doc.setTextColor(40, 40, 40);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Notes:', 52, 603);
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Generated by Ganesh Chavithi 2026 Donation Portal', margin + 18, pageHeight - 38);
+  doc.text('Omash Chavithi 2025 - Adranam Street, Allagadda', 52, 620);
+  doc.text('Thank you for your generous support and devotion.', 52, 634);
+
+  doc.setTextColor(40, 40, 40);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Signature', 90, 686);
+  doc.text('Seal', pageWidth - 120, 686);
+
+  drawInvoiceSignature(doc, 70, 705);
+  drawInvoiceSeal(doc, pageWidth - 120, 710);
 
   doc.save(`invoice-${invoiceNumber}.pdf`);
 };
@@ -1088,11 +1244,15 @@ function DonationsTab() {
                           Send Invoice
                         </button>
                         <button
-                          onClick={() => downloadDonationInvoice({
-                            ...don,
-                            mobile: don.mobile || don.phone || '',
-                            invoiceNumber: don.invoiceNumber || generateInvoiceNumber(don),
-                          })}
+                          onClick={async () => {
+                            await downloadDonationInvoice({
+                              ...don,
+                              mobile: don.mobile || don.phone || '',
+                              invoiceNumber: don.invoiceNumber || generateInvoiceNumber(don),
+                              upiId: don.upiId || 'ganeshchavithi@upi',
+                              address: don.address || 'Adranam Street\nALLAGADDA\nAndhra Pradesh - 518543'
+                            });
+                          }}
                           className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition-colors border border-white/10"
                           title="Download invoice"
                         >
