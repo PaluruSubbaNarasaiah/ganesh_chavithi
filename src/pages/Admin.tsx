@@ -746,11 +746,75 @@ function VolunteersTab() {
   );
 }
 
+const formatCurrency = (value: number | string) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(value || 0));
+
+const generateInvoiceNumber = (donation: any) => {
+  const date = donation?.date ? new Date(donation.date) : new Date();
+  const stamp = date.toISOString().slice(0, 10).replace(/-/g, '');
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `GCV-${stamp}-${random}`;
+};
+
+const generateInvoiceMessage = (donation: any) => {
+  const invoiceNumber = donation?.invoiceNumber || generateInvoiceNumber(donation);
+  const amount = formatCurrency(donation?.amount || 0);
+  const donorMobile = donation?.mobile || donation?.phone || 'Not provided';
+  const donationDate = donation?.date ? new Date(donation.date).toLocaleDateString('en-IN') : 'Today';
+
+  return [
+    '🙏 Thank you for your generous donation to Sri Ganga Ghanapathi - Ganesh Chavithi 2026.',
+    '',
+    `Invoice No: ${invoiceNumber}`,
+    `Donor Name: ${donation?.name || 'Guest'}`,
+    `Mobile: ${donorMobile}`,
+    `Amount: ${amount}`,
+    `Date: ${donationDate}`,
+    'Status: Approved',
+    '',
+    'Your contribution will help us celebrate the festival with devotion and service.'
+  ].join('\n');
+};
+
+const sendDonationInvoiceToWhatsApp = (donation: any) => {
+  const donorMobile = (donation?.mobile || donation?.phone || '').toString().trim();
+  if (!donorMobile) return;
+
+  const cleanMobile = donorMobile.replace(/\D/g, '');
+  if (!cleanMobile) return;
+
+  const message = encodeURIComponent(generateInvoiceMessage(donation));
+  window.open(`https://wa.me/${cleanMobile}?text=${message}`, '_blank', 'noopener,noreferrer');
+};
+
 function DonationsTab() {
   const { donations, setDonations } = useAppContext();
 
   const updateStatus = (id: string, status: string) => {
-    setDonations(donations.map((d: any) => d.id === id ? { ...d, status } : d));
+    const donation = donations.find((d: any) => d.id === id);
+    if (!donation) return;
+
+    const isApproving = status === 'approved' && donation.status !== 'approved';
+    if (isApproving) {
+      const shouldSend = window.confirm('Approve this donation and send the invoice to the donor on WhatsApp?');
+      if (!shouldSend) return;
+    }
+
+    const updatedDonation = isApproving
+      ? {
+          ...donation,
+          status,
+          mobile: donation.mobile || donation.phone || '',
+          invoiceNumber: donation.invoiceNumber || generateInvoiceNumber(donation),
+          invoiceGeneratedAt: donation.invoiceGeneratedAt || new Date().toISOString()
+        }
+      : { ...donation, status, mobile: donation.mobile || donation.phone || '' };
+
+    setDonations(donations.map((d: any) => d.id === id ? updatedDonation : d));
+
+    if (isApproving) {
+      sendDonationInvoiceToWhatsApp(updatedDonation);
+    }
   };
 
   const remove = (id: string) => {
@@ -801,11 +865,17 @@ function DonationsTab() {
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-1 text-xs text-white/50">
-                    <span className="flex items-center gap-1 font-bold text-[#D4AF37]">₹ {don.amount}</span>
+                    <span className="flex items-center gap-1 font-bold text-[#D4AF37]">{formatCurrency(don.amount)}</span>
                     <span>•</span>
-                    <a href={`tel:${don.phone}`} className="hover:text-emerald-400 transition-colors">{don.phone}</a>
+                    <a href={`tel:${don.mobile || don.phone || ''}`} className="hover:text-emerald-400 transition-colors">{don.mobile || don.phone || 'No mobile'}</a>
                     <span>•</span>
                     <span>{new Date(don.date).toLocaleDateString()}</span>
+                    {don.invoiceNumber && (
+                      <>
+                        <span>•</span>
+                        <span className="text-emerald-400 font-bold">Invoice {don.invoiceNumber}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 

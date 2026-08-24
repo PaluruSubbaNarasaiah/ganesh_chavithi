@@ -30,6 +30,7 @@ export default function Donate() {
       id: Date.now().toString(),
       name: formData.name,
       phone: formData.phone,
+      mobile: formData.phone,
       amount: formData.amount,
       screenshot: screenshotPreview,
       status: 'pending', // can be pending, approved, declined
@@ -89,8 +90,8 @@ export default function Donate() {
             <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="Your Name" />
           </div>
           <div>
-            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Phone Number</label>
-            <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="Your Phone Number" />
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Mobile Number</label>
+            <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="Your Mobile Number" />
           </div>
           <div>
             <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Amount (₹)</label>
