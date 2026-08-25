@@ -1038,9 +1038,20 @@ const downloadDonationInvoice = async (donation: any) => {
 };
 
 function DonationsTab() {
-  const { donations, setDonations } = useAppContext();
+  const { donations, setDonations, paymentQrImage, setPaymentQrImage } = useAppContext();
   const [invoiceFilter, setInvoiceFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [invoiceSearch, setInvoiceSearch] = useState('');
+
+  const handleQrImageChange = (file: File | undefined) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (result.length <= 500000) setPaymentQrImage(result);
+      else window.alert('Please upload a QR image smaller than 500 KB.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const updateStatus = (id: string, status: string) => {
     const donation = donations.find((d: any) => d.id === id);
@@ -1098,6 +1109,23 @@ function DonationsTab() {
 
   return (
     <div className="space-y-6">
+      <Card className="glass !p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h3 className="font-serif gold-text text-xl">UPI Payment QR</h3>
+            <p className="text-xs text-white/50 mt-1">This QR code is shown on the public donation page.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {paymentQrImage && <img src={paymentQrImage} alt="Current UPI QR" className="w-16 h-16 rounded-lg object-contain bg-white p-1" />}
+            <label className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 rounded-lg hover:bg-emerald-500/30 transition-colors border border-emerald-500/30 cursor-pointer">
+              {paymentQrImage ? 'Replace QR' : 'Upload QR'}
+              <input type="file" accept="image/*" className="hidden" onChange={e => handleQrImageChange(e.target.files?.[0])} />
+            </label>
+            {paymentQrImage && <button type="button" onClick={() => setPaymentQrImage('')} className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors border border-red-500/30">Remove</button>}
+          </div>
+        </div>
+      </Card>
+
       <Card className="glass !p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-serif gold-text text-xl">Manage Donations</h3>
