@@ -1279,7 +1279,15 @@ function CommitteeTab() {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
+  const [image, setImage] = useState('');
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
+  const handleImageChange = (file: File | undefined) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => setImage(typeof reader.result === 'string' ? reader.result : '');
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1287,16 +1295,17 @@ function CommitteeTab() {
 
     if (editIndex !== null) {
       const updated = [...committee];
-      updated[editIndex] = { name, role, phone };
+      updated[editIndex] = { ...updated[editIndex], name, role, phone, image };
       setCommittee(updated);
       setEditIndex(null);
     } else {
-      setCommittee([...committee, { name, role, phone }]);
+      setCommittee([...committee, { name, role, phone, image }]);
     }
 
     setName('');
     setRole('');
     setPhone('');
+    setImage('');
   };
 
   const startEdit = (index: number) => {
@@ -1304,6 +1313,7 @@ function CommitteeTab() {
     setName(committee[index].name);
     setRole(committee[index].role);
     setPhone(committee[index].phone || '');
+    setImage(committee[index].image || '');
   };
 
   const removeMember = (index: number) => {
@@ -1319,6 +1329,7 @@ function CommitteeTab() {
     setName('');
     setRole('');
     setPhone('');
+    setImage('');
   };
 
   return (
@@ -1340,6 +1351,15 @@ function CommitteeTab() {
             <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Phone Number (Optional)</label>
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" placeholder="+91 98765 43210" />
           </div>
+
+          <div>
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Profile Photo (Optional)</label>
+            <div className="flex flex-wrap items-center gap-3">
+              <input type="file" accept="image/*" onChange={e => handleImageChange(e.target.files?.[0])} className="block w-full text-xs text-white/60 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-white/20" />
+              {image && <img src={image} alt="Profile preview" className="w-14 h-14 rounded-full object-cover border border-[#D4AF37]/50" />}
+              {image && <button type="button" onClick={() => setImage('')} className="text-xs text-red-300 hover:text-red-200">Remove photo</button>}
+            </div>
+          </div>
           
           <div className="flex gap-2">
             <button type="submit" className="flex-1 py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(242,125,38,0.3)] hover:shadow-[0_0_30px_rgba(242,125,38,0.5)] transition-shadow">
@@ -1359,8 +1379,12 @@ function CommitteeTab() {
         <div className="space-y-2">
           {committee.map((member: any, i: number) => (
             <div key={i} className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5 hover:border-white/20 transition-colors">
-              <div>
-                <p className="font-bold text-sm text-white/90">{member.name}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  {member.image ? <img src={member.image} alt={`${member.name} profile`} className="w-full h-full object-cover" /> : <span className="gold-text font-serif">{member.name.charAt(0)}</span>}
+                </div>
+                <div>
+                  <p className="font-bold text-sm text-white/90">{member.name}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold">{member.role}</span>
                   {member.phone && (
@@ -1379,6 +1403,7 @@ function CommitteeTab() {
                   <Trash2 size={16} />
                 </button>
               </div>
+            </div>
             </div>
           ))}
           {committee.length === 0 && <p className="text-white/30 text-xs italic p-4 text-center">No committee members added.</p>}
