@@ -56,6 +56,21 @@ http://localhost:5173/
 npm run build
 ```
 
+## Supabase realtime setup
+
+The app uses local storage when Supabase is not configured. To share committee profiles, payment QR, donations, gallery, announcements, timings, stories, live events, and volunteers across mobile devices:
+
+1. Create a Supabase project.
+2. In the Supabase SQL Editor, run `supabase/schema.sql`.
+3. Add these variables to `.env.local` for local development and to the hosting provider for production:
+
+```text
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+The public anon key is safe for browser use. Never add a Supabase service-role key to frontend environment variables. The SQL policy allows public reads and authenticated writes; configure Supabase Auth for admin accounts before enabling production updates.
+
 ## Project structure
 
 ```text

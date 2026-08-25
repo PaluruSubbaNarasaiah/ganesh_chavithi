@@ -7,6 +7,7 @@ import {
   announcements as defaultAnnouncements 
 } from '../data';
 import { translations, Language, TranslationKey } from '../translations';
+import { supabase } from '../lib/supabase';
 
 const AppContext = createContext<any>(null);
 
@@ -72,6 +73,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     JSON.parse(localStorage.getItem('gc_donations') || 'null') || []
   );
 
+  const [remoteStateReady, setRemoteStateReady] = useState(!supabase);
+
   useEffect(() => safeSetItem('gc_language', language), [language]);
   useEffect(() => safeSetItem('gc_announcements', JSON.stringify(announcements)), [announcements]);
   useEffect(() => safeSetItem('gc_stories', JSON.stringify(stories)), [stories]);
@@ -82,6 +85,66 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSetItem('gc_live', JSON.stringify(liveEvent)), [liveEvent]);
   useEffect(() => safeSetItem('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSetItem('gc_donations', JSON.stringify(donations)), [donations]);
+
+  useEffect(() => {
+    const client = supabase;
+    if (!client) return;
+
+    let active = true;
+    const loadRemoteState = async () => {
+      const { data, error } = await client.from('site_state').select('key, value');
+      if (error) {
+        console.warn('Supabase state load failed; using local data.', error.message);
+      } else if (active && data) {
+        const state = Object.fromEntries(data.map(row => [row.key, row.value]));
+        if (state.language) setLanguage(state.language as Language);
+        if (state.announcements) setAnnouncements(state.announcements);
+        if (state.stories) setStories(state.stories);
+        if (state.poojaTimings) setPoojaTimings(state.poojaTimings);
+        if (state.gallery) setGallery(state.gallery);
+        if (state.committee) setCommittee(state.committee);
+        if (state.paymentQrImage !== undefined) setPaymentQrImage(state.paymentQrImage);
+        if (state.liveEvent) setLiveEvent(state.liveEvent);
+        if (state.volunteers) setVolunteers(state.volunteers);
+        if (state.donations) setDonations(state.donations);
+      }
+      if (active) setRemoteStateReady(true);
+    };
+
+    void loadRemoteState();
+
+    const channel = client
+      .channel('site-state-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, payload => {
+        const row = payload.new as { key?: string; value?: unknown };
+        if (!row.key) return;
+        if (row.key === 'language') setLanguage(row.value as Language);
+        if (row.key === 'announcements') setAnnouncements(row.value);
+        if (row.key === 'stories') setStories(row.value);
+        if (row.key === 'poojaTimings') setPoojaTimings(row.value);
+        if (row.key === 'gallery') setGallery(row.value);
+        if (row.key === 'committee') setCommittee(row.value);
+        if (row.key === 'paymentQrImage') setPaymentQrImage(row.value as string);
+        if (row.key === 'liveEvent') setLiveEvent(row.value);
+        if (row.key === 'volunteers') setVolunteers(row.value);
+        if (row.key === 'donations') setDonations(row.value);
+      })
+      .subscribe();
+
+    return () => {
+      active = false;
+      void client.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const client = supabase;
+    if (!client || !remoteStateReady) return;
+    const state = { language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, liveEvent, volunteers, donations };
+    void Promise.all(Object.entries(state).map(([key, value]) =>
+      client.from('site_state').upsert({ key, value, updated_at: new Date().toISOString() })
+    )).catch(error => console.warn('Supabase state save failed.', error));
+  }, [remoteStateReady, language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, liveEvent, volunteers, donations]);
 
   // Translation helper function
   const t = (key: TranslationKey) => translations[language][key] || translations['en'][key] || key;
