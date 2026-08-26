@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/Layout';
 import Home from './pages/Home';
@@ -14,8 +14,6 @@ import Committee from './pages/Committee';
 import Volunteer from './pages/Volunteer';
 import Admin from './pages/Admin';
 
-const githubPagesBasename = '/ganesh_chavithi';
-
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -29,7 +27,7 @@ function ScrollToTop() {
 export default function App() {
   return (
     <AppProvider>
-      <BrowserRouter basename={githubPagesBasename}>
+      <HashRouter>
         <ScrollToTop />
         <Layout>
           <Routes>
@@ -49,7 +47,7 @@ export default function App() {
             <Route path="/menu" element={<Committee />} />
           </Routes>
         </Layout>
-      </BrowserRouter>
+      </HashRouter>
     </AppProvider>
   );
 }
