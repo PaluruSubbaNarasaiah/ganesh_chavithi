@@ -69,7 +69,7 @@ VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-The public anon key is safe for browser use. Never add a Supabase service-role key to frontend environment variables. The SQL policy allows public reads and authenticated writes; configure Supabase Auth for admin accounts before enabling production updates.
+The public anon key is safe for browser use. Never add a Supabase service-role key to frontend environment variables. The SQL policy allows public reads and authenticated writes. Create the admin account in Supabase under **Authentication > Users > Add user**, then use that email and password on the Admin page.
 
 ## Project structure
 

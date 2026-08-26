@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui';
 import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -25,8 +25,14 @@ const itemVariants = {
 };
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { authSession } = useAppContext();
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(authSession));
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  useEffect(() => setIsLoggedIn(Boolean(authSession)), [authSession]);
 
   if (!isLoggedIn) {
     return (
@@ -59,16 +65,28 @@ export default function Admin() {
           </div>
           
           <form 
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setIsLoggedIn(true);
+              setLoginError('');
+              const { supabase } = await import('../lib/supabase');
+              if (!supabase) {
+                setLoginError('Supabase is not configured.');
+                return;
+              }
+              const { error } = await supabase.auth.signInWithPassword({ email, password });
+              if (error) setLoginError(error.message);
             }}
             className="space-y-4"
           >
             <div>
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Passcode</label>
-              <input type="password" required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors text-center tracking-widest text-lg" placeholder="••••" />
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Admin Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="admin@example.com" />
             </div>
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="Your Supabase password" />
+            </div>
+            {loginError && <p className="text-red-300 text-xs text-center">{loginError}</p>}
             <button type="submit" className="w-full py-3 rounded-xl saffron-bg text-white font-bold hover:shadow-[0_0_20px_rgba(242,125,38,0.4)] transition-shadow uppercase tracking-wider text-sm">
               Access Dashboard
             </button>
@@ -120,7 +138,11 @@ export default function Admin() {
             <h1 className="font-bold text-lg gold-text font-serif">Committee Admin</h1>
             <p className="text-[10px] uppercase tracking-widest text-white/50">Ganesh Chavithi 2026</p>
           </div>
-          <button onClick={() => setIsLoggedIn(false)} className="p-2 text-white/50 hover:text-white transition-colors">
+          <button onClick={async () => {
+            const { supabase } = await import('../lib/supabase');
+            await supabase?.auth.signOut();
+            setIsLoggedIn(false);
+          }} className="p-2 text-white/50 hover:text-white transition-colors">
             <LogOut size={20} />
           </button>
         </div>
