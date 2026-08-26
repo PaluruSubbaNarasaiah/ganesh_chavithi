@@ -1470,6 +1470,7 @@ function SettingsTab() {
   const { disclaimer, setDisclaimer, supportedBy, setSupportedBy } = useAppContext();
   const [name, setName] = useState('');
   const [image, setImage] = useState('');
+  const supporters = Array.isArray(supportedBy) ? supportedBy : [];
 
   const readImage = (file: File | undefined) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -1485,7 +1486,7 @@ function SettingsTab() {
   const addSupporter = (event: React.FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return;
-    setSupportedBy([...supportedBy, { name: name.trim(), image }]);
+    setSupportedBy([...supporters, { name: name.trim(), image }]);
     setName('');
     setImage('');
   };
@@ -1516,7 +1517,7 @@ function SettingsTab() {
                 {supporter.image && <img src={supporter.image} alt="" className="w-10 h-10 rounded-full object-cover" />}
                 <span className="text-sm text-white/80">{supporter.name}</span>
               </div>
-              <button type="button" onClick={() => setSupportedBy(supportedBy.filter((_: any, itemIndex: number) => itemIndex !== index))} className="p-2 bg-red-600/20 text-red-300 rounded-lg" title="Remove supporter"><Trash2 size={16} /></button>
+              <button type="button" onClick={() => setSupportedBy(supporters.filter((_: any, itemIndex: number) => itemIndex !== index))} className="p-2 bg-red-600/20 text-red-300 rounded-lg" title="Remove supporter"><Trash2 size={16} /></button>
             </div>
           ))}
         </div>
