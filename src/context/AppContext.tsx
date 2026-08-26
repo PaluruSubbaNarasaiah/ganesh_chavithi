@@ -54,6 +54,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [paymentQrImage, setPaymentQrImage] = useState(() =>
     localStorage.getItem('gc_payment_qr') || ''
   );
+
+  const [disclaimer, setDisclaimer] = useState(() =>
+    localStorage.getItem('gc_disclaimer') || 'This website is maintained by the festival committee. Information and payment details should be verified before use.'
+  );
+
+  const [supportedBy, setSupportedBy] = useState(() =>
+    JSON.parse(localStorage.getItem('gc_supported_by') || 'null') || []
+  );
   
   const [liveEvent, setLiveEvent] = useState(() => 
     JSON.parse(localStorage.getItem('gc_live') || 'null') || { 
@@ -83,6 +91,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSetItem('gc_gallery', JSON.stringify(gallery)), [gallery]);
   useEffect(() => safeSetItem('gc_committee', JSON.stringify(committee)), [committee]);
   useEffect(() => safeSetItem('gc_payment_qr', paymentQrImage), [paymentQrImage]);
+  useEffect(() => safeSetItem('gc_disclaimer', disclaimer), [disclaimer]);
+  useEffect(() => safeSetItem('gc_supported_by', JSON.stringify(supportedBy)), [supportedBy]);
   useEffect(() => safeSetItem('gc_live', JSON.stringify(liveEvent)), [liveEvent]);
   useEffect(() => safeSetItem('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSetItem('gc_donations', JSON.stringify(donations)), [donations]);
@@ -117,6 +127,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (state.gallery) setGallery(state.gallery);
         if (state.committee) setCommittee(state.committee);
         if (state.paymentQrImage !== undefined) setPaymentQrImage(state.paymentQrImage);
+        if (state.disclaimer) setDisclaimer(state.disclaimer);
+        if (state.supportedBy) setSupportedBy(state.supportedBy);
         if (state.liveEvent) setLiveEvent(state.liveEvent);
         if (state.volunteers) setVolunteers(state.volunteers);
         if (state.donations) setDonations(state.donations);
@@ -138,6 +150,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (row.key === 'gallery') setGallery(row.value);
         if (row.key === 'committee') setCommittee(row.value);
         if (row.key === 'paymentQrImage') setPaymentQrImage(row.value as string);
+        if (row.key === 'disclaimer') setDisclaimer(row.value as string);
+        if (row.key === 'supportedBy') setSupportedBy(row.value);
         if (row.key === 'liveEvent') setLiveEvent(row.value);
         if (row.key === 'volunteers') setVolunteers(row.value);
         if (row.key === 'donations') setDonations(row.value);
@@ -153,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const client = supabase;
     if (!client || !remoteStateReady || !authSession) return;
-    const state = { language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, liveEvent, volunteers, donations };
+    const state = { language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, disclaimer, supportedBy, liveEvent, volunteers, donations };
     void Promise.all(Object.entries(state).map(([key, value]) =>
       client.from('site_state').upsert({ key, value, updated_at: new Date().toISOString() })
     )).catch(error => console.warn('Supabase state save failed.', error));

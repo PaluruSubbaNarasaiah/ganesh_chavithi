@@ -7,7 +7,7 @@ import logoImage from '../assets/images/regenerated_image_1787252044935.png';
 
 export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const { language, setLanguage, t } = useAppContext();
+  const { language, setLanguage, t, disclaimer, supportedBy } = useAppContext();
   
   const isSetup = location.pathname.startsWith('/admin');
 
@@ -77,6 +77,26 @@ export function Layout({ children }: { children: ReactNode }) {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <footer className="relative z-10 border-t border-white/10 bg-black/30 px-4 py-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {supportedBy.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold mb-3">Supported by</p>
+              <div className="flex flex-wrap gap-3">
+                {supportedBy.map((supporter: any, index: number) => (
+                  <div key={`${supporter.name}-${index}`} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                    {supporter.image && <img src={supporter.image} alt="" className="w-8 h-8 rounded-full object-cover" />}
+                    <span className="text-xs text-white/80">{supporter.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="max-w-3xl text-[10px] leading-relaxed text-white/45">{disclaimer}</p>
+          <p className="text-center text-[10px] uppercase tracking-[0.25em] text-white/40">App designed by <span className="text-[#D4AF37]">Paluru Subba Narasaiah</span></p>
+        </div>
+      </footer>
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-t border-white/10 safe-area-pb">
