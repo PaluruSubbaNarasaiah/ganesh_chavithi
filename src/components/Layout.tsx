@@ -80,11 +80,11 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <footer className="relative z-10 border-t border-white/10 bg-black/30 px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          {supportedBy.length > 0 && (
+          {Array.isArray(supportedBy) && supportedBy.length > 0 && (
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-bold mb-3">Supported by</p>
               <div className="flex flex-wrap gap-3">
-                {supportedBy.map((supporter: any, index: number) => (
+                {(Array.isArray(supportedBy) ? supportedBy : []).map((supporter: any, index: number) => (
                   <div key={`${supporter.name}-${index}`} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                     {supporter.image && <img src={supporter.image} alt="" className="w-8 h-8 rounded-full object-cover" />}
                     <span className="text-xs text-white/80">{supporter.name}</span>
