@@ -4,6 +4,7 @@ import { Home, Image, MapPin, Video, Calendar, UserRound, IndianRupee, Trophy, I
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
+import backgroundImage from '../assets/images/regenerated_image_1787252044935.png';
 
 export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -22,7 +23,7 @@ export function Layout({ children }: { children: ReactNode }) {
         {/* Background Image - user must upload their image to public/bg.png or use this fallback */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity"
-          style={{ backgroundImage: `url('/bg.png')` }}
+          style={{ backgroundImage: `url(${backgroundImage})` }}
         ></div>
         
         {/* Immersive Gradients over the image to keep text readable */}
