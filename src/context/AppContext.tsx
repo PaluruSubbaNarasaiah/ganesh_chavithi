@@ -108,7 +108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (state.volunteers) setVolunteers(state.volunteers);
         if (state.donations) setDonations(state.donations);
       }
-      if (active && !error) setRemoteStateReady(true);
+      if (active) setRemoteStateReady(true);
     };
 
     void loadRemoteState();
