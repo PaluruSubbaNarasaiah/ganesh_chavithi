@@ -49,10 +49,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [committee, setCommittee] = useState(() => 
     JSON.parse(localStorage.getItem('gc_committee') || 'null') || defaultCommittee
   );
-
-  const [paymentQrImage, setPaymentQrImage] = useState(() =>
-    localStorage.getItem('gc_payment_qr') || ''
-  );
   
   const [liveEvent, setLiveEvent] = useState(() => 
     JSON.parse(localStorage.getItem('gc_live') || 'null') || { 
@@ -78,7 +74,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSetItem('gc_timings', JSON.stringify(poojaTimings)), [poojaTimings]);
   useEffect(() => safeSetItem('gc_gallery', JSON.stringify(gallery)), [gallery]);
   useEffect(() => safeSetItem('gc_committee', JSON.stringify(committee)), [committee]);
-  useEffect(() => safeSetItem('gc_payment_qr', paymentQrImage), [paymentQrImage]);
   useEffect(() => safeSetItem('gc_live', JSON.stringify(liveEvent)), [liveEvent]);
   useEffect(() => safeSetItem('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSetItem('gc_donations', JSON.stringify(donations)), [donations]);
@@ -94,7 +89,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       poojaTimings, setPoojaTimings,
       gallery, setGallery,
       committee, setCommittee,
-      paymentQrImage, setPaymentQrImage,
       liveEvent, setLiveEvent,
       volunteers, setVolunteers,
       donations, setDonations
