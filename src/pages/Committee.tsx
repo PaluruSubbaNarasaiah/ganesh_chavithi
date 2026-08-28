@@ -12,12 +12,8 @@ export default function Committee() {
       <div className="space-y-4">
         {committee.map((member: any, i: number) => (
           <Card key={i} className="flex items-center gap-4 !p-4">
-            <div className="w-14 h-14 rounded-full bg-black/40 flex items-center justify-center shrink-0 border border-white/10 overflow-hidden">
-              {member.image ? (
-                <img src={member.image} alt={`${member.name} profile`} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-xl font-serif gold-text">{member.name.charAt(0)}</span>
-              )}
+            <div className="w-14 h-14 rounded-full bg-black/40 flex items-center justify-center shrink-0 border border-white/10">
+              <span className="text-xl font-serif gold-text">{member.name.charAt(0)}</span>
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-white/90">{member.name}</h3>
