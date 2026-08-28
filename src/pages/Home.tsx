@@ -44,9 +44,7 @@ const imageVariants = {
 };
 
 export default function Home() {
-  const { announcements, supportedBy, t } = useAppContext();
-  const safeAnnouncements = Array.isArray(announcements) ? announcements : [];
-  const safeSupporters = Array.isArray(supportedBy) ? supportedBy : [];
+  const { announcements, t } = useAppContext();
   const [expanded, setExpanded] = useState(false);
   const { scrollY } = useScroll();
   const yBg = useTransform(scrollY, [0, 800], [0, 200]);
@@ -176,27 +174,11 @@ export default function Home() {
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             className="absolute top-0 left-0 w-full flex flex-col gap-5 text-[10px] uppercase tracking-widest text-white/80"
           >
-            {safeAnnouncements.map((ann: string, i: number) => <span key={i} className="truncate">{ann}</span>)}
-            {safeAnnouncements[0] && <span className="truncate">{safeAnnouncements[0]}</span>}
+            {announcements.map((ann: string, i: number) => <span key={i} className="truncate">{ann}</span>)}
+            <span className="truncate">{announcements[0]}</span>
           </motion.div>
         </div>
       </div>
-
-      <Card className="border-[#F27D26]/20 bg-[#F27D26]/5 !p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Megaphone className="saffron-text" size={18} />
-          <h3 className="text-xs uppercase tracking-[0.25em] font-bold gold-text">Latest Alerts</h3>
-        </div>
-        {safeAnnouncements.length > 0 ? (
-          <div className="space-y-2">
-            {safeAnnouncements.slice(0, 3).map((announcement: string, index: number) => (
-              <p key={`${announcement}-${index}`} className="text-sm text-white/80 border-l-2 border-[#F27D26]/60 pl-3">{announcement}</p>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-white/50">No current announcements.</p>
-        )}
-      </Card>
 
       {/* Primary Actions Grid */}
       <div className="grid grid-cols-2 gap-4">
@@ -218,14 +200,16 @@ export default function Home() {
       {/* Sponsors Section */}
       <div className="mt-8 mb-4">
         <h3 className="text-center text-[10px] uppercase tracking-[0.3em] opacity-40 font-bold mb-4">{t('supportedBy')}</h3>
-        <div className="flex flex-wrap justify-center gap-6 opacity-60">
-          {safeSupporters.length > 0 ? safeSupporters.map((supporter: any, index: number) => (
-            <div key={`${supporter.name}-${index}`} className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80 overflow-hidden">
-              {supporter.image ? <img src={supporter.image} alt={supporter.name} className="w-full h-full object-cover" /> : supporter.name}
-            </div>
-          )) : (
-            <p className="text-xs text-white/40">Supporter details will appear here.</p>
-          )}
+        <div className="flex justify-center gap-6 opacity-60">
+          <div className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80">
+            Gold Jewellers
+          </div>
+          <div className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80">
+            Tech Solutions
+          </div>
+          <div className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80">
+            City Bakers
+          </div>
         </div>
       </div>
     </div>
