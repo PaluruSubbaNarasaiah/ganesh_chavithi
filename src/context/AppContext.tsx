@@ -74,7 +74,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const [remoteStateReady, setRemoteStateReady] = useState(!supabase);
-  const [authSession, setAuthSession] = useState<any>(null);
 
   useEffect(() => safeSetItem('gc_language', language), [language]);
   useEffect(() => safeSetItem('gc_announcements', JSON.stringify(announcements)), [announcements]);
@@ -86,18 +85,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSetItem('gc_live', JSON.stringify(liveEvent)), [liveEvent]);
   useEffect(() => safeSetItem('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSetItem('gc_donations', JSON.stringify(donations)), [donations]);
-
-  useEffect(() => {
-    const client = supabase;
-    if (!client) return;
-
-    void client.auth.getSession().then(({ data }) => setAuthSession(data.session));
-    const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
-      setAuthSession(session);
-    });
-
-    return () => listener.subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     const client = supabase;
@@ -152,12 +139,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const client = supabase;
-    if (!client || !remoteStateReady || !authSession) return;
+    if (!client || !remoteStateReady) return;
     const state = { language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, liveEvent, volunteers, donations };
     void Promise.all(Object.entries(state).map(([key, value]) =>
       client.from('site_state').upsert({ key, value, updated_at: new Date().toISOString() })
     )).catch(error => console.warn('Supabase state save failed.', error));
-  }, [remoteStateReady, authSession, language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, liveEvent, volunteers, donations]);
+  }, [remoteStateReady, language, announcements, stories, poojaTimings, gallery, committee, paymentQrImage, liveEvent, volunteers, donations]);
 
   // Translation helper function
   const t = (key: TranslationKey) => translations[language][key] || translations['en'][key] || key;
@@ -171,7 +158,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       gallery, setGallery,
       committee, setCommittee,
       paymentQrImage, setPaymentQrImage,
-      authSession,
       liveEvent, setLiveEvent,
       volunteers, setVolunteers,
       donations, setDonations
