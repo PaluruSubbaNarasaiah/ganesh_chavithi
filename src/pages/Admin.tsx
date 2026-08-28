@@ -1510,7 +1510,7 @@ function SettingsTab() {
           </div>
         </form>
         <div className="space-y-2 mt-6">
-          {(Array.isArray(supportedBy) ? supportedBy : []).map((supporter: any, index: number) => (
+          {supportedBy.map((supporter: any, index: number) => (
             <div key={`${supporter.name}-${index}`} className="flex items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5">
               <div className="flex items-center gap-3">
                 {supporter.image && <img src={supporter.image} alt="" className="w-10 h-10 rounded-full object-cover" />}

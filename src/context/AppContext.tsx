@@ -11,8 +11,6 @@ import { supabase } from '../lib/supabase';
 
 const AppContext = createContext<any>(null);
 
-const asArray = <T,>(value: unknown, fallback: T[] = []) => Array.isArray(value) ? value as T[] : fallback;
-
 const safeSetItem = (key: string, value: string) => {
   try {
     localStorage.setItem(key, value);
@@ -62,7 +60,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const [supportedBy, setSupportedBy] = useState(() =>
-    asArray(JSON.parse(localStorage.getItem('gc_supported_by') || 'null'))
+    JSON.parse(localStorage.getItem('gc_supported_by') || 'null') || []
   );
   
   const [liveEvent, setLiveEvent] = useState(() => 
@@ -123,17 +121,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else if (active && data) {
         const state = Object.fromEntries(data.map(row => [row.key, row.value]));
         if (state.language) setLanguage(state.language as Language);
-        if (state.announcements) setAnnouncements(asArray<string>(state.announcements, defaultAnnouncements));
-        if (state.stories) setStories(asArray(state.stories, defaultStories));
-        if (state.poojaTimings) setPoojaTimings(asArray(state.poojaTimings, defaultTimings));
-        if (state.gallery) setGallery(asArray(state.gallery, defaultGallery));
-        if (state.committee) setCommittee(asArray(state.committee, defaultCommittee));
+        if (state.announcements) setAnnouncements(state.announcements);
+        if (state.stories) setStories(state.stories);
+        if (state.poojaTimings) setPoojaTimings(state.poojaTimings);
+        if (state.gallery) setGallery(state.gallery);
+        if (state.committee) setCommittee(state.committee);
         if (state.paymentQrImage !== undefined) setPaymentQrImage(state.paymentQrImage);
         if (state.disclaimer) setDisclaimer(state.disclaimer);
-        if (state.supportedBy) setSupportedBy(asArray(state.supportedBy));
+        if (state.supportedBy) setSupportedBy(state.supportedBy);
         if (state.liveEvent) setLiveEvent(state.liveEvent);
-        if (state.volunteers) setVolunteers(asArray(state.volunteers));
-        if (state.donations) setDonations(asArray(state.donations));
+        if (state.volunteers) setVolunteers(state.volunteers);
+        if (state.donations) setDonations(state.donations);
       }
       if (active && !error) setRemoteStateReady(true);
     };
@@ -146,17 +144,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const row = payload.new as { key?: string; value?: unknown };
         if (!row.key) return;
         if (row.key === 'language') setLanguage(row.value as Language);
-        if (row.key === 'announcements') setAnnouncements(asArray<string>(row.value, defaultAnnouncements));
-        if (row.key === 'stories') setStories(asArray(row.value, defaultStories));
-        if (row.key === 'poojaTimings') setPoojaTimings(asArray(row.value, defaultTimings));
-        if (row.key === 'gallery') setGallery(asArray(row.value, defaultGallery));
-        if (row.key === 'committee') setCommittee(asArray(row.value, defaultCommittee));
+        if (row.key === 'announcements') setAnnouncements(row.value);
+        if (row.key === 'stories') setStories(row.value);
+        if (row.key === 'poojaTimings') setPoojaTimings(row.value);
+        if (row.key === 'gallery') setGallery(row.value);
+        if (row.key === 'committee') setCommittee(row.value);
         if (row.key === 'paymentQrImage') setPaymentQrImage(row.value as string);
         if (row.key === 'disclaimer') setDisclaimer(row.value as string);
-        if (row.key === 'supportedBy') setSupportedBy(asArray(row.value));
+        if (row.key === 'supportedBy') setSupportedBy(row.value);
         if (row.key === 'liveEvent') setLiveEvent(row.value);
-        if (row.key === 'volunteers') setVolunteers(asArray(row.value));
-        if (row.key === 'donations') setDonations(asArray(row.value));
+        if (row.key === 'volunteers') setVolunteers(row.value);
+        if (row.key === 'donations') setDonations(row.value);
       })
       .subscribe();
 
