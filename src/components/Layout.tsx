@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, MapPin, Video, Calendar, UserRound, IndianRupee, Trophy, Info, Settings, Languages, Heart } from 'lucide-react';
+import { Home, Image, MapPin, Video, Calendar, UserRound, IndianRupee, Trophy, Info, Settings, Languages } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
@@ -95,15 +95,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           )}
           <p className="max-w-3xl text-[10px] leading-relaxed text-white/45">{disclaimer}</p>
-          <div className="text-center text-[10px] uppercase tracking-[0.2em] text-white/40 space-y-2">
-            <p>Copyright © 2026</p>
-            <p>
-              Designed &amp; Developed with <Heart size={11} fill="currentColor" className="inline-block text-red-400 align-[-1px]" /> by{' '}
-              <a href="https://palurusubbanarasaiah.github.io/my_portfolio/" target="_blank" rel="noopener noreferrer" className="text-[#D4AF37] hover:text-white transition-colors">
-                Paluru Subba Narasaiah
-              </a>
-            </p>
-          </div>
+          <p className="text-center text-[10px] uppercase tracking-[0.25em] text-white/40">App designed by <span className="text-[#D4AF37]">Paluru Subba Narasaiah</span></p>
         </div>
       </footer>
 
