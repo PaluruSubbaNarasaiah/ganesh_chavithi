@@ -108,7 +108,6 @@ export default function Admin() {
       case 'volunteers': return <VolunteersTab />;
       case 'donations': return <DonationsTab />;
       case 'committee': return <CommitteeTab />;
-      case 'settings': return <SettingsTab />;
       default: return <DashboardTab setActiveTab={setActiveTab} />;
     }
   };
@@ -161,7 +160,6 @@ export default function Admin() {
           <NavBtn active={activeTab === 'volunteers'} onClick={() => setActiveTab('volunteers')} icon={<Users size={18} />} label="Volunteers" />
           <NavBtn active={activeTab === 'donations'} onClick={() => setActiveTab('donations')} icon={<Heart size={18} />} label="Donations" />
           <NavBtn active={activeTab === 'committee'} onClick={() => setActiveTab('committee')} icon={<Users size={18} />} label="Committee" />
-          <NavBtn active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings size={18} />} label="Footer" />
         </div>
 
         {/* Mobile Nav Tabs (scrollable horizontal) */}
@@ -175,7 +173,6 @@ export default function Admin() {
            <NavBtn active={activeTab === 'volunteers'} onClick={() => setActiveTab('volunteers')} icon={<Users size={16} />} label="Vols" mobile />
            <NavBtn active={activeTab === 'donations'} onClick={() => setActiveTab('donations')} icon={<Heart size={16} />} label="Donations" mobile />
            <NavBtn active={activeTab === 'committee'} onClick={() => setActiveTab('committee')} icon={<Users size={16} />} label="Team" mobile />
-           <NavBtn active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings size={16} />} label="Footer" mobile />
         </div>
 
         {/* Main Content Area */}
@@ -1460,65 +1457,6 @@ function CommitteeTab() {
             </div>
           ))}
           {committee.length === 0 && <p className="text-white/30 text-xs italic p-4 text-center">No committee members added.</p>}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function SettingsTab() {
-  const { disclaimer, setDisclaimer, supportedBy, setSupportedBy } = useAppContext();
-  const [name, setName] = useState('');
-  const [image, setImage] = useState('');
-
-  const readImage = (file: File | undefined) => {
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === 'string' ? reader.result : '';
-      if (result.length <= 500000) setImage(result);
-      else window.alert('Please upload an image smaller than 500 KB.');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const addSupporter = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!name.trim()) return;
-    setSupportedBy([...supportedBy, { name: name.trim(), image }]);
-    setName('');
-    setImage('');
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card className="glass !p-6">
-        <h3 className="font-serif gold-text text-xl mb-4">Footer Content</h3>
-        <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Disclaimer</label>
-        <textarea value={disclaimer} onChange={event => setDisclaimer(event.target.value)} rows={4} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
-        <p className="text-[10px] text-white/40 mt-2">Changes are saved automatically and shown on the public site.</p>
-      </Card>
-
-      <Card className="glass !p-6">
-        <h3 className="font-serif gold-text text-xl mb-4">Supported By</h3>
-        <form onSubmit={addSupporter} className="space-y-4">
-          <input value={name} onChange={event => setName(event.target.value)} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]" placeholder="Supporter or sponsor name" />
-          <input type="file" accept="image/*" onChange={event => readImage(event.target.files?.[0])} className="block w-full text-xs text-white/60 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white" />
-          <div className="flex items-center gap-3">
-            {image && <img src={image} alt="Supporter preview" className="w-12 h-12 rounded-full object-cover border border-[#D4AF37]/50" />}
-            <button type="submit" className="px-4 py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs">Add Supporter</button>
-          </div>
-        </form>
-        <div className="space-y-2 mt-6">
-          {supportedBy.map((supporter: any, index: number) => (
-            <div key={`${supporter.name}-${index}`} className="flex items-center justify-between gap-3 p-3 bg-black/40 rounded-xl border border-white/5">
-              <div className="flex items-center gap-3">
-                {supporter.image && <img src={supporter.image} alt="" className="w-10 h-10 rounded-full object-cover" />}
-                <span className="text-sm text-white/80">{supporter.name}</span>
-              </div>
-              <button type="button" onClick={() => setSupportedBy(supportedBy.filter((_: any, itemIndex: number) => itemIndex !== index))} className="p-2 bg-red-600/20 text-red-300 rounded-lg" title="Remove supporter"><Trash2 size={16} /></button>
-            </div>
-          ))}
         </div>
       </Card>
     </div>
