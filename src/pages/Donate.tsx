@@ -73,7 +73,7 @@ export default function Donate() {
         <div className="bg-white p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
           <QrCode size={160} className="text-black" />
         </div>
-        <p className="font-bold text-lg tracking-widest gold-text">SRIGANGA@UPI</p>
+        <p className="font-bold text-lg tracking-widest gold-text">GANGAGHANAPATHI@UPI</p>
         <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest mt-2 flex gap-3">
           <span>PhonePe</span> • <span>GPay</span> • <span>Paytm</span>
         </p>

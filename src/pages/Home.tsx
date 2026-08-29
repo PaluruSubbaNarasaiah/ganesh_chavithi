@@ -197,21 +197,7 @@ export default function Home() {
         <ListMenuButton to="/volunteer" icon={<Users className="gold-text" />} title={t('volunteer')} subtitle={t('volunteerSub')} />
       </div>
 
-      {/* Sponsors Section */}
-      <div className="mt-8 mb-4">
-        <h3 className="text-center text-[10px] uppercase tracking-[0.3em] opacity-40 font-bold mb-4">{t('supportedBy')}</h3>
-        <div className="flex justify-center gap-6 opacity-60">
-          <div className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80">
-            Gold Jewellers
-          </div>
-          <div className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80">
-            Tech Solutions
-          </div>
-          <div className="w-16 h-16 rounded-full glass flex items-center justify-center font-bold text-xs text-center p-2 text-white/80">
-            City Bakers
-          </div>
-        </div>
-      </div>
+      {/* Sponsors Section - managed via admin */}
     </div>
   );
 }

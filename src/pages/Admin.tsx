@@ -196,23 +196,27 @@ function NavBtn({ active, onClick, icon, label, mobile }: { active: boolean, onC
 
 // --- TAB COMPONENTS ---
 
-const donationData = [
-  { day: 'Day 1', amount: 4500 },
-  { day: 'Day 2', amount: 6200 },
-  { day: 'Day 3', amount: 5100 },
-  { day: 'Day 4', amount: 8400 },
-  { day: 'Day 5', amount: 9600 },
-  { day: 'Day 6', amount: 11400 },
-];
-
 function DashboardTab({ setActiveTab }: { setActiveTab: (t: string) => void }) {
+  const { donations, volunteers } = useAppContext();
+  const approvedTotal = donations
+    .filter((d: any) => d.status === 'approved')
+    .reduce((sum: number, d: any) => sum + Number(d.amount || 0), 0);
+  const chartData = donations
+    .filter((d: any) => d.status === 'approved')
+    .reduce((acc: any[], d: any) => {
+      const day = new Date(d.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      const existing = acc.find((a: any) => a.day === day);
+      if (existing) existing.amount += Number(d.amount || 0);
+      else acc.push({ day, amount: Number(d.amount || 0) });
+      return acc;
+    }, []);
   return (
     <div className="space-y-6">
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={<Users />} label="Visitors" value="1,245" color="text-blue-400" />
-        <StatCard icon={<QrCode />} label="QR Scans" value="856" color="text-emerald-400" />
-        <StatCard icon={<Heart />} label="Donations" value="₹45,200" color="text-red-400" />
-        <StatCard icon={<Trophy />} label="Signups" value="124" color="text-yellow-400" />
+        <StatCard icon={<Heart />} label="Donations" value={`₹${approvedTotal.toLocaleString('en-IN')}`} color="text-red-400" />
+        <StatCard icon={<QrCode />} label="Total Records" value={String(donations.length)} color="text-emerald-400" />
+        <StatCard icon={<Users />} label="Volunteers" value={String(volunteers.length)} color="text-blue-400" />
+        <StatCard icon={<Trophy />} label="Approved" value={String(donations.filter((d: any) => d.status === 'approved').length)} color="text-yellow-400" />
       </motion.div>
 
       <motion.div variants={itemVariants}>
@@ -230,7 +234,7 @@ function DashboardTab({ setActiveTab }: { setActiveTab: (t: string) => void }) {
           
           <div className="h-64 w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={donationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#F27D26" stopOpacity={0.3}/>

@@ -22,17 +22,25 @@ const fromLS = <T,>(key: string, fallback: T): T => {
   try { return JSON.parse(raw) as T; } catch { return fallback; }
 };
 
-async function sbFetch(table: string) {
+// Read one key from site_state
+async function sbGet(key: string) {
   if (!supabase) return null;
-  const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false });
-  if (error) { console.warn(`Supabase fetch ${table}:`, error.message); return null; }
-  return data;
+  const { data, error } = await supabase
+    .from('site_state')
+    .select('value')
+    .eq('key', key)
+    .single();
+  if (error) { console.warn(`Supabase get [${key}]:`, error.message); return null; }
+  return data?.value ?? null;
 }
 
-async function sbUpsert(table: string, row: object) {
+// Write one key to site_state (upsert)
+async function sbSet(key: string, value: unknown) {
   if (!supabase) return;
-  const { error } = await supabase.from(table).upsert(row as any);
-  if (error) console.warn(`Supabase upsert ${table}:`, error.message);
+  const { error } = await supabase
+    .from('site_state')
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) console.warn(`Supabase set [${key}]:`, error.message);
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -102,45 +110,74 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSet('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSet('gc_donations', JSON.stringify(donations)), [donations]);
 
-  // Load from Supabase on mount
+  // Load all keys from site_state on mount
   useEffect(() => {
     (async () => {
-      const [anns, comm, vols, dons] = await Promise.all([
-        sbFetch('announcements'),
-        sbFetch('committee'),
-        sbFetch('volunteers'),
-        sbFetch('donations'),
+      const [anns, comm, vols, dons, live, timings] = await Promise.all([
+        sbGet('announcements'),
+        sbGet('committee'),
+        sbGet('volunteers'),
+        sbGet('donations'),
+        sbGet('liveEvent'),
+        sbGet('poojaTimings'),
       ]);
-      if (anns?.length) setAnnouncements(anns.map((r: any) => r.text));
-      if (comm?.length) setCommittee(comm.map(({ id: _id, created_at: _c, ...rest }: any) => rest));
-      if (vols?.length) setVolunteers(vols.map(({ created_at: _c, ...rest }: any) => rest));
-      if (dons?.length) setDonations(dons.map(({ created_at: _c, ...rest }: any) => rest));
+      if (Array.isArray(anns)) setAnnouncements(anns);
+      if (Array.isArray(comm)) setCommittee(comm);
+      if (Array.isArray(vols)) setVolunteers(vols);
+      if (Array.isArray(dons)) setDonations(dons);
+      if (live && typeof live === 'object') setLiveEvent(live);
+      if (Array.isArray(timings)) setPoojaTimings(timings);
     })();
+  }, []);
+
+  // Realtime: sync site_state changes from other sessions
+  useEffect(() => {
+    if (!supabase) return;
+    const channel = supabase
+      .channel('site_state_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload: any) => {
+        const { key, value } = payload.new ?? {};
+        if (!key) return;
+        if (key === 'announcements' && Array.isArray(value)) setAnnouncements(value);
+        if (key === 'committee' && Array.isArray(value)) setCommittee(value);
+        if (key === 'volunteers' && Array.isArray(value)) setVolunteers(value);
+        if (key === 'donations' && Array.isArray(value)) setDonations(value);
+        if (key === 'liveEvent' && value) setLiveEvent(value);
+        if (key === 'poojaTimings' && Array.isArray(value)) setPoojaTimings(value);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // Supabase-aware setters
   const setAnnouncementsSync = useCallback(async (next: string[]) => {
     setAnnouncements(next);
-    if (!supabase) return;
-    await supabase.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    for (const text of next) await sbUpsert('announcements', { text });
+    await sbSet('announcements', next);
   }, []);
 
   const setCommitteeSync = useCallback(async (next: any[]) => {
     setCommittee(next);
-    if (!supabase) return;
-    await supabase.from('committee').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    for (const m of next) await sbUpsert('committee', m);
+    await sbSet('committee', next);
   }, []);
 
   const setVolunteersSync = useCallback(async (next: any[]) => {
     setVolunteers(next);
-    for (const v of next) await sbUpsert('volunteers', v);
+    await sbSet('volunteers', next);
   }, []);
 
   const setDonationsSync = useCallback(async (next: any[]) => {
     setDonations(next);
-    for (const d of next) await sbUpsert('donations', d);
+    await sbSet('donations', next);
+  }, []);
+
+  const setLiveEventSync = useCallback(async (next: any) => {
+    setLiveEvent(next);
+    await sbSet('liveEvent', next);
+  }, []);
+
+  const setPoojaTimingsSync = useCallback(async (next: any[]) => {
+    setPoojaTimings(next);
+    await sbSet('poojaTimings', next);
   }, []);
 
   const t = (key: TranslationKey) =>
@@ -152,10 +189,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       language, setLanguage, t,
       announcements, setAnnouncements: setAnnouncementsSync,
       stories, setStories,
-      poojaTimings, setPoojaTimings,
+      poojaTimings, setPoojaTimings: setPoojaTimingsSync,
       gallery, setGallery,
       committee, setCommittee: setCommitteeSync,
-      liveEvent, setLiveEvent,
+      liveEvent, setLiveEvent: setLiveEventSync,
       volunteers, setVolunteers: setVolunteersSync,
       donations, setDonations: setDonationsSync,
     }}>
