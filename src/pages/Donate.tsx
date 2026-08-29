@@ -13,13 +13,22 @@ export default function Donate() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setScreenshotPreview(reader.result as string);
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // Compress to max 400px wide, 0.5 quality to keep size small
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, 400 / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setScreenshotPreview(canvas.toDataURL('image/jpeg', 0.5));
       };
-      reader.readAsDataURL(file);
-    }
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,8 +42,8 @@ export default function Donate() {
       mobile: formData.phone,
       amount: formData.amount,
       screenshot: screenshotPreview,
-      status: 'pending', // can be pending, approved, declined
-      date: new Date().toISOString()
+      status: 'pending',
+      date: new Date().toISOString(),
     };
 
     setDonations([...donations, newDonation]);
@@ -46,19 +55,12 @@ export default function Donate() {
   if (submitted) {
     return (
       <div className="py-12 flex flex-col items-center justify-center text-center h-full">
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="text-emerald-500 mb-4"
-        >
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-emerald-500 mb-4">
           <CheckCircle2 size={64} />
         </motion.div>
         <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
         <p className="text-zinc-400 mb-8 max-w-xs">Your donation details have been submitted. The admin will verify shortly.</p>
-        <button 
-          onClick={() => setSubmitted(false)}
-          className="px-6 py-2 bg-zinc-800 rounded-full text-sm font-medium hover:bg-zinc-700 transition-colors"
-        >
+        <button onClick={() => setSubmitted(false)} className="px-6 py-2 bg-zinc-800 rounded-full text-sm font-medium hover:bg-zinc-700 transition-colors">
           Make another donation
         </button>
       </div>
@@ -68,7 +70,7 @@ export default function Donate() {
   return (
     <div className="py-4 pb-20">
       <SectionTitle title="Donate" subtitle="Support the committee's initiatives." />
-      
+
       <Card className="flex flex-col items-center p-8 mb-8 border-gold-text/30">
         <div className="bg-white p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
           <QrCode size={160} className="text-black" />
@@ -81,10 +83,7 @@ export default function Donate() {
 
       <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] opacity-50 mb-4 px-1">Verify Payment</h3>
       <Card>
-        <form 
-          className="space-y-4"
-          onSubmit={handleSubmit}
-        >
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Name</label>
             <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors" placeholder="Your Name" />
@@ -99,17 +98,8 @@ export default function Donate() {
           </div>
           <div>
             <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Payment Screenshot</label>
-            <input 
-              type="file" 
-              accept="image/*" 
-              ref={fileInputRef} 
-              className="hidden" 
-              onChange={handleImageChange}
-            />
-            <div 
-              onClick={() => fileInputRef.current?.click()}
-              className="border border-dashed border-white/20 rounded-xl p-6 flex flex-col items-center justify-center text-white/40 hover:text-white hover:border-[#D4AF37] transition-colors cursor-pointer bg-black/20 overflow-hidden relative"
-            >
+            <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleImageChange} />
+            <div onClick={() => fileInputRef.current?.click()} className="border border-dashed border-white/20 rounded-xl p-6 flex flex-col items-center justify-center text-white/40 hover:text-white hover:border-[#D4AF37] transition-colors cursor-pointer bg-black/20 overflow-hidden relative min-h-[80px]">
               {screenshotPreview ? (
                 <img src={screenshotPreview} alt="Screenshot preview" className="absolute inset-0 w-full h-full object-cover opacity-60" />
               ) : (
@@ -120,7 +110,6 @@ export default function Donate() {
               )}
             </div>
           </div>
-          
           <button type="submit" className="w-full py-4 mt-2 rounded-xl saffron-bg text-white font-bold shadow-[0_0_20px_rgba(242,125,38,0.3)] hover:shadow-[0_0_30px_rgba(242,125,38,0.5)] transition-shadow uppercase tracking-wider text-sm">
             Submit Details
           </button>

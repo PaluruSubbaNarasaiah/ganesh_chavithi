@@ -22,7 +22,6 @@ const fromLS = <T,>(key: string, fallback: T): T => {
   try { return JSON.parse(raw) as T; } catch { return fallback; }
 };
 
-// Read one key from site_state
 async function sbGet(key: string) {
   if (!supabase) return null;
   const { data, error } = await supabase
@@ -34,7 +33,6 @@ async function sbGet(key: string) {
   return data?.value ?? null;
 }
 
-// Write one key to site_state (upsert)
 async function sbSet(key: string, value: unknown) {
   if (!supabase) return;
   const { error } = await supabase
@@ -42,6 +40,10 @@ async function sbSet(key: string, value: unknown) {
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) console.warn(`Supabase set [${key}]:`, error.message);
 }
+
+// Strip large base64 screenshots before sending to Supabase
+const stripScreenshots = (arr: any[]) =>
+  arr.map(({ screenshot: _s, ...rest }) => rest);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(
@@ -85,11 +87,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [liveEvent, setLiveEvent] = useState(
     () => fromLS('gc_live', {
-      isLive: true,
-      title: 'Evening Maha Harathi',
-      description: 'Join us for the special evening prayers.',
-      viewers: 1248,
-      url: 'https://images.unsplash.com/photo-1662057790855-322d7a22d363?auto=format&fit=crop&q=80',
+      isLive: false,
+      title: '',
+      description: '',
+      viewers: 0,
+      url: '',
     })
   );
   const [volunteers, setVolunteers] = useState<any[]>(
@@ -110,46 +112,66 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSet('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSet('gc_donations', JSON.stringify(donations)), [donations]);
 
-  // Load all keys from site_state on mount
+  // Load from Supabase on mount — Supabase is source of truth
   useEffect(() => {
     (async () => {
-      const [anns, comm, vols, dons, live, timings] = await Promise.all([
+      const [anns, comm, vols, dons, live, timings, gall, stors] = await Promise.all([
         sbGet('announcements'),
         sbGet('committee'),
         sbGet('volunteers'),
         sbGet('donations'),
         sbGet('liveEvent'),
         sbGet('poojaTimings'),
+        sbGet('gallery'),
+        sbGet('stories'),
       ]);
       if (Array.isArray(anns)) setAnnouncements(anns);
       if (Array.isArray(comm)) setCommittee(comm);
       if (Array.isArray(vols)) setVolunteers(vols);
-      if (Array.isArray(dons)) setDonations(dons);
+      if (Array.isArray(dons)) {
+        // Merge screenshots from localStorage (not stored in Supabase)
+        const lsDons = fromLS<any[]>('gc_donations', []);
+        const merged = dons.map((d: any) => {
+          const ls = lsDons.find((l: any) => l.id === d.id);
+          return ls?.screenshot ? { ...d, screenshot: ls.screenshot } : d;
+        });
+        setDonations(merged);
+      }
       if (live && typeof live === 'object') setLiveEvent(live);
       if (Array.isArray(timings)) setPoojaTimings(timings);
+      if (Array.isArray(gall)) setGallery(gall);
+      if (Array.isArray(stors)) setStories(stors);
     })();
   }, []);
 
-  // Realtime: sync site_state changes from other sessions
+  // Realtime: push Supabase changes to all open tabs/devices instantly
   useEffect(() => {
     if (!supabase) return;
     const channel = supabase
-      .channel('site_state_changes')
+      .channel('site_state_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload: any) => {
         const { key, value } = payload.new ?? {};
         if (!key) return;
         if (key === 'announcements' && Array.isArray(value)) setAnnouncements(value);
         if (key === 'committee' && Array.isArray(value)) setCommittee(value);
-        if (key === 'volunteers' && Array.isArray(value)) setVolunteers(value);
-        if (key === 'donations' && Array.isArray(value)) setDonations(value);
-        if (key === 'liveEvent' && value) setLiveEvent(value);
         if (key === 'poojaTimings' && Array.isArray(value)) setPoojaTimings(value);
+        if (key === 'gallery' && Array.isArray(value)) setGallery(value);
+        if (key === 'stories' && Array.isArray(value)) setStories(value);
+        if (key === 'liveEvent' && value) setLiveEvent(value);
+        if (key === 'volunteers' && Array.isArray(value)) setVolunteers(value);
+        if (key === 'donations' && Array.isArray(value)) {
+          // Merge screenshots from localStorage
+          setDonations(prev => value.map((d: any) => {
+            const ls = prev.find((l: any) => l.id === d.id);
+            return ls?.screenshot ? { ...d, screenshot: ls.screenshot } : d;
+          }));
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Supabase-aware setters
+  // Setters — write to state + Supabase simultaneously
   const setAnnouncementsSync = useCallback(async (next: string[]) => {
     setAnnouncements(next);
     await sbSet('announcements', next);
@@ -167,7 +189,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setDonationsSync = useCallback(async (next: any[]) => {
     setDonations(next);
-    await sbSet('donations', next);
+    // Strip screenshots — too large for Supabase JSONB, kept only in localStorage
+    await sbSet('donations', stripScreenshots(next));
   }, []);
 
   const setLiveEventSync = useCallback(async (next: any) => {
@@ -180,6 +203,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await sbSet('poojaTimings', next);
   }, []);
 
+  const setGallerySync = useCallback(async (next: any[]) => {
+    setGallery(next);
+    // Strip base64 data URIs from gallery too before Supabase write
+    const forSupabase = next.map((img: any) =>
+      img.url?.startsWith('data:') ? { ...img, url: '' } : img
+    );
+    await sbSet('gallery', forSupabase);
+  }, []);
+
+  const setStoriesSync = useCallback(async (next: any[]) => {
+    setStories(next);
+    await sbSet('stories', next);
+  }, []);
+
   const t = (key: TranslationKey) =>
     translations[language][key] || translations['en'][key] || key;
 
@@ -188,9 +225,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isAdminLoggedIn, adminLogin, adminLogout,
       language, setLanguage, t,
       announcements, setAnnouncements: setAnnouncementsSync,
-      stories, setStories,
+      stories, setStories: setStoriesSync,
       poojaTimings, setPoojaTimings: setPoojaTimingsSync,
-      gallery, setGallery,
+      gallery, setGallery: setGallerySync,
       committee, setCommittee: setCommitteeSync,
       liveEvent, setLiveEvent: setLiveEventSync,
       volunteers, setVolunteers: setVolunteersSync,
