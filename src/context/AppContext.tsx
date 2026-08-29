@@ -112,6 +112,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<any[]>(
     () => fromLS('gc_notifications', [])
   );
+  const [qrCodes, setQrCodes] = useState<any[]>(
+    () => fromLS('gc_qrcodes', [])
+  );
 
   // Persist to localStorage
   useEffect(() => safeSet('gc_language', language), [language]);
@@ -124,6 +127,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSet('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSet('gc_donations', JSON.stringify(donations)), [donations]);
   useEffect(() => safeSet('gc_notifications', JSON.stringify(notifications)), [notifications]);
+  useEffect(() => safeSet('gc_qrcodes', JSON.stringify(qrCodes)), [qrCodes]);
 
   // Load from Supabase on mount — Supabase is source of truth
   useEffect(() => {
@@ -138,12 +142,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sbGet('gallery'),
         sbGet('stories'),
         sbGet('notifications'),
+        sbGet('qrCodes'),
       ]);
       if (Array.isArray(anns)) setAnnouncements(anns);
       if (Array.isArray(comm)) setCommittee(comm);
       if (Array.isArray(vols)) setVolunteers(vols);
       if (Array.isArray(dons)) {
-        // Merge screenshots from localStorage (not stored in Supabase)
         const lsDons = fromLS<any[]>('gc_donations', []);
         const merged = dons.map((d: any) => {
           const ls = lsDons.find((l: any) => l.id === d.id);
@@ -156,6 +160,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (Array.isArray(gall)) setGallery(gall);
       if (Array.isArray(stors)) setStories(stors);
       if (Array.isArray(notifs)) setNotifications(notifs);
+      const qrs = await sbGet('qrCodes');
+      if (Array.isArray(qrs)) setQrCodes(qrs);
     })();
   }, []);
 
@@ -175,6 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (key === 'liveEvent' && value) setLiveEvent(value);
         if (key === 'volunteers' && Array.isArray(value)) setVolunteers(value);
         if (key === 'notifications' && Array.isArray(value)) setNotifications(value);
+        if (key === 'qrCodes' && Array.isArray(value)) setQrCodes(value);
         if (key === 'donations' && Array.isArray(value)) {
           // Merge screenshots from localStorage
           setDonations(prev => value.map((d: any) => {
@@ -228,6 +235,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await sbSet('gallery', forSupabase);
   }, []);
 
+  const setQrCodesSync = useCallback(async (next: any[]) => {
+    setQrCodes(next);
+    await sbSet('qrCodes', next);
+  }, []);
+
   const setNotificationsSync = useCallback(async (next: any[]) => {
     setNotifications(next);
     await sbSet('notifications', next);
@@ -253,6 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       liveEvent, setLiveEvent: setLiveEventSync,
       volunteers, setVolunteers: setVolunteersSync,
       notifications, setNotifications: setNotificationsSync,
+      qrCodes, setQrCodes: setQrCodesSync,
       donations, setDonations: setDonationsSync,
     }}>
       {children}

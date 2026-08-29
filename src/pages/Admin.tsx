@@ -122,6 +122,7 @@ export default function Admin() {
       case 'live': return <LiveTab />;
       case 'volunteers': return <VolunteersTab />;
       case 'donations': return <DonationsTab />;
+      case 'qrcodes': return <QrCodesTab />;
       case 'committee': return <CommitteeTab />;
       default: return <DashboardTab setActiveTab={setActiveTab} />;
     }
@@ -171,6 +172,7 @@ export default function Admin() {
           <NavBtn active={activeTab === 'live'} onClick={() => setActiveTab('live')} icon={<Video size={18} />} label="Live Stream" />
           <NavBtn active={activeTab === 'volunteers'} onClick={() => setActiveTab('volunteers')} icon={<Users size={18} />} label="Volunteers" />
           <NavBtn active={activeTab === 'donations'} onClick={() => setActiveTab('donations')} icon={<Heart size={18} />} label="Donations" />
+          <NavBtn active={activeTab === 'qrcodes'} onClick={() => setActiveTab('qrcodes')} icon={<QrCode size={18} />} label="QR Codes" />
           <NavBtn active={activeTab === 'committee'} onClick={() => setActiveTab('committee')} icon={<Users size={18} />} label="Committee" />
         </div>
 
@@ -185,6 +187,7 @@ export default function Admin() {
            <NavBtn active={activeTab === 'live'} onClick={() => setActiveTab('live')} icon={<Video size={16} />} label="Live" mobile />
            <NavBtn active={activeTab === 'volunteers'} onClick={() => setActiveTab('volunteers')} icon={<Users size={16} />} label="Vols" mobile />
            <NavBtn active={activeTab === 'donations'} onClick={() => setActiveTab('donations')} icon={<Heart size={16} />} label="Donations" mobile />
+           <NavBtn active={activeTab === 'qrcodes'} onClick={() => setActiveTab('qrcodes')} icon={<QrCode size={16} />} label="QR" mobile />
            <NavBtn active={activeTab === 'committee'} onClick={() => setActiveTab('committee')} icon={<Users size={16} />} label="Team" mobile />
         </div>
 
@@ -883,16 +886,22 @@ const generateInvoiceMessage = (donation: any) => {
   const donationDate = donation?.date ? new Date(donation.date).toLocaleDateString('en-IN') : 'Today';
 
   return [
-    '🙏 Thank you for your generous donation to Sri Ganga Ghanapathi - Ganesh Chavithi 2026.',
-    '',
-    `Invoice No: ${invoiceNumber}`,
-    `Donor Name: ${donation?.name || 'Guest'}`,
-    `Mobile: ${donorMobile}`,
-    `Amount: ${amount}`,
-    `Date: ${donationDate}`,
-    'Status: Approved',
-    '',
-    'Your contribution will help us celebrate the festival with devotion and service.'
+    '🙏 *Sri Ganga Ghanapathi - Ganesh Chavithi 2026*',
+    '*Donation Receipt*',
+    '─────────────────────',
+    `📋 Invoice No : ${invoiceNumber}`,
+    `👤 Donor Name : ${donation?.name || 'Guest'}`,
+    `📱 Mobile     : ${donorMobile}`,
+    `💰 Amount     : ${amount}`,
+    `📅 Date       : ${donationDate}`,
+    `✅ Status     : Approved`,
+    '─────────────────────',
+    '🏛️ Sri Ganga Ghanapathi Committee',
+    '📍 Adranam Street, Allagadda, AP 518543',
+    '📞 +91 89705 84121',
+    '─────────────────────',
+    'మీ విరాళానికి హృదయపూర్వక ధన్యవాదాలు 🙏',
+    'Thank you for your generous support!'
   ].join('\n');
 };
 
@@ -1153,6 +1162,98 @@ const downloadDonationInvoice = async (donation: any) => {
 
   doc.save(`invoice-${invoiceNumber}.pdf`);
 };
+
+function QrCodesTab() {
+  const { qrCodes, setQrCodes } = useAppContext();
+  const [label, setLabel] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    const reader = new FileReader();
+    reader.onload = () => setPreview(reader.result as string);
+    reader.readAsDataURL(f);
+  };
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!label || !file) return;
+    setUploading(true);
+    const { uploadProfileImage } = await import('../lib/supabase');
+    const imageUrl = await uploadProfileImage(file, 'committee');
+    if (imageUrl) {
+      setQrCodes([{ id: Date.now().toString(), label, upiId, imageUrl }, ...qrCodes]);
+    }
+    setLabel(''); setUpiId(''); setFile(null); setPreview(null);
+    setUploading(false);
+  };
+
+  const remove = (id: string) => {
+    if (window.confirm('Remove this QR code?')) setQrCodes(qrCodes.filter((q: any) => q.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass !p-6">
+        <h3 className="font-serif gold-text text-xl mb-4">Add Payment QR Code</h3>
+        <form onSubmit={add} className="space-y-4">
+          {/* QR Image Upload */}
+          <div className="flex flex-col items-center gap-2">
+            <input type="file" accept="image/*" ref={fileRef} className="hidden" onChange={handleFile} />
+            <div
+              onClick={() => fileRef.current?.click()}
+              className="w-40 h-40 rounded-2xl border-2 border-dashed border-white/20 hover:border-[#D4AF37] transition-colors cursor-pointer overflow-hidden flex items-center justify-center bg-black/30 relative"
+            >
+              {preview
+                ? <img src={preview} alt="QR Preview" className="w-full h-full object-contain p-2" />
+                : <div className="flex flex-col items-center text-white/40">
+                    <QrCode size={40} />
+                    <span className="text-[10px] mt-2 uppercase tracking-wider">Upload QR Image</span>
+                  </div>
+              }
+            </div>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider">Click to upload QR code image</p>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Label</label>
+            <input type="text" value={label} onChange={e => setLabel(e.target.value)} required placeholder="e.g. PhonePe / GPay / Main UPI" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">UPI ID (shown below QR)</label>
+            <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} placeholder="e.g. gangaghanapathi@upi" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+          </div>
+
+          <button type="submit" disabled={uploading || !file} className="w-full py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs disabled:opacity-50 flex items-center justify-center gap-2">
+            {uploading ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Uploading...</> : 'Add QR Code'}
+          </button>
+        </form>
+      </Card>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {qrCodes.length === 0 && <p className="text-white/40 text-sm text-center py-8 col-span-2">No QR codes added yet.</p>}
+        {qrCodes.map((qr: any) => (
+          <Card key={qr.id} className="glass !p-4 flex flex-col items-center gap-3 relative">
+            <button onClick={() => remove(qr.id)} className="absolute top-3 right-3 p-1.5 bg-red-600/20 text-red-400 hover:bg-red-600/40 rounded-lg transition-colors">
+              <Trash2 size={14} />
+            </button>
+            <div className="bg-white p-3 rounded-xl w-32 h-32 flex items-center justify-center">
+              <img src={qr.imageUrl} alt={qr.label} className="w-full h-full object-contain" />
+            </div>
+            <p className="font-bold text-sm gold-text">{qr.label}</p>
+            {qr.upiId && <p className="text-[10px] text-white/50 uppercase tracking-wider">{qr.upiId}</p>}
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DonationsTab() {
   const { donations, setDonations } = useAppContext();

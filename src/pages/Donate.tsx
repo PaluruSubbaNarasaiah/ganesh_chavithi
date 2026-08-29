@@ -1,14 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { SectionTitle, Card } from '../components/ui';
-import { QrCode, Upload, CheckCircle2 } from 'lucide-react';
+import { QrCode, Upload, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 
 export default function Donate() {
-  const { donations, setDonations, t } = useAppContext();
+  const { donations, setDonations, qrCodes, t } = useAppContext();
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', amount: '' });
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [activeQr, setActiveQr] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,15 +68,76 @@ export default function Donate() {
     <div className="py-4 pb-20">
       <SectionTitle title={t('donateTitle')} subtitle={t('donateSub')} />
 
-      <Card className="flex flex-col items-center p-8 mb-8 border-gold-text/30">
-        <div className="bg-white p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-          <QrCode size={160} className="text-black" />
-        </div>
-        <p className="font-bold text-lg tracking-widest gold-text">GANGAGHANAPATHI@UPI</p>
-        <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest mt-2 flex gap-3">
-          <span>PhonePe</span> • <span>GPay</span> • <span>Paytm</span>
-        </p>
-      </Card>
+      {/* QR Code Section */}
+      {qrCodes && qrCodes.length > 0 ? (
+        <Card className="flex flex-col items-center p-6 mb-8 border-[#D4AF37]/20">
+          {/* Multi QR navigation */}
+          {qrCodes.length > 1 && (
+            <div className="flex items-center gap-3 mb-4 w-full justify-center">
+              <button
+                onClick={() => setActiveQr(i => Math.max(0, i - 1))}
+                disabled={activeQr === 0}
+                className="p-1.5 glass rounded-full text-white/50 hover:text-white disabled:opacity-20 transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-[10px] uppercase tracking-widest text-white/50 font-bold">
+                {activeQr + 1} / {qrCodes.length}
+              </span>
+              <button
+                onClick={() => setActiveQr(i => Math.min(qrCodes.length - 1, i + 1))}
+                disabled={activeQr === qrCodes.length - 1}
+                className="p-1.5 glass rounded-full text-white/50 hover:text-white disabled:opacity-20 transition-colors"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+
+          <div className="bg-white p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            <img
+              src={qrCodes[activeQr]?.imageUrl}
+              alt={qrCodes[activeQr]?.label}
+              className="w-40 h-40 object-contain"
+            />
+          </div>
+
+          <p className="font-bold text-lg tracking-widest gold-text uppercase">
+            {qrCodes[activeQr]?.label}
+          </p>
+          {qrCodes[activeQr]?.upiId && (
+            <p className="text-white/60 text-sm mt-1 font-mono">{qrCodes[activeQr].upiId}</p>
+          )}
+
+          {/* Dot indicators for multiple QRs */}
+          {qrCodes.length > 1 && (
+            <div className="flex gap-1.5 mt-4">
+              {qrCodes.map((_: any, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveQr(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === activeQr ? 'bg-[#D4AF37]' : 'bg-white/20'}`}
+                />
+              ))}
+            </div>
+          )}
+
+          <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest mt-3 flex gap-3">
+            <span>PhonePe</span> • <span>GPay</span> • <span>Paytm</span>
+          </p>
+        </Card>
+      ) : (
+        /* Fallback when no QR uploaded yet */
+        <Card className="flex flex-col items-center p-8 mb-8 border-[#D4AF37]/20">
+          <div className="bg-white p-4 rounded-2xl mb-4 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            <QrCode size={160} className="text-black" />
+          </div>
+          <p className="font-bold text-lg tracking-widest gold-text">GANGAGHANAPATHI@UPI</p>
+          <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest mt-2 flex gap-3">
+            <span>PhonePe</span> • <span>GPay</span> • <span>Paytm</span>
+          </p>
+        </Card>
+      )}
 
       <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] opacity-50 mb-4 px-1">{t('verifyPayment')}</h3>
       <Card>
