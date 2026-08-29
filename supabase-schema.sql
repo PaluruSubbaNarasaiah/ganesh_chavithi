@@ -15,10 +15,13 @@ create table if not exists public.site_state (
 
 alter table public.site_state enable row level security;
 
--- Drop old policies if they exist
+-- Drop ALL existing policies (including ones created in previous runs)
 drop policy if exists "Public can read site state" on public.site_state;
 drop policy if exists "Authenticated admins can write site state" on public.site_state;
 drop policy if exists "Anon can write site state" on public.site_state;
+drop policy if exists "Public read" on public.site_state;
+drop policy if exists "Anon write" on public.site_state;
+drop policy if exists "Auth write" on public.site_state;
 
 -- Allow everyone (anon + authenticated) to read
 create policy "Public read"
