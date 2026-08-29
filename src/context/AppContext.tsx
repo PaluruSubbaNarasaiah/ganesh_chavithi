@@ -84,7 +84,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => fromLS('gc_stories', defaultStories)
   );
   const [poojaTimings, setPoojaTimings] = useState(
-    () => fromLS('gc_timings', defaultTimings)
+    () => {
+      const saved = fromLS<any[]>('gc_timings', defaultTimings);
+      // If saved has fewer days than default, merge: keep saved events, fill missing days from default
+      if (saved.length < defaultTimings.length) {
+        return defaultTimings.map((def, i) => saved[i] ? saved[i] : def);
+      }
+      return saved;
+    }
   );
   const [gallery, setGallery] = useState(() => {
     const saved = fromLS<any[]>('gc_gallery', []);
