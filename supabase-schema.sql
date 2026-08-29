@@ -54,3 +54,41 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.site_state;
   END IF;
 END $$;
+
+-- ============================================================
+-- Storage bucket for profile images (committee + volunteers)
+-- ============================================================
+
+-- Create the bucket (idempotent)
+insert into storage.buckets (id, name, public)
+values ('profiles', 'profiles', true)
+on conflict (id) do nothing;
+
+-- Drop old storage policies if they exist
+drop policy if exists "Public can view profile images" on storage.objects;
+drop policy if exists "Anon can upload profile images" on storage.objects;
+drop policy if exists "Auth can upload profile images" on storage.objects;
+drop policy if exists "Auth can delete profile images" on storage.objects;
+
+-- Anyone can view profile images (public bucket)
+create policy "Public can view profile images"
+  on storage.objects for select
+  using (bucket_id = 'profiles');
+
+-- Anon users can upload (volunteer self-signup)
+create policy "Anon can upload profile images"
+  on storage.objects for insert
+  to anon
+  with check (bucket_id = 'profiles');
+
+-- Authenticated (admin) can upload
+create policy "Auth can upload profile images"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'profiles');
+
+-- Authenticated (admin) can delete
+create policy "Auth can delete profile images"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'profiles');
