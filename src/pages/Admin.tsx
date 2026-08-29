@@ -842,24 +842,54 @@ function WhatsAppRemindersPanel({ poojaTimings }: { poojaTimings: any[] }) {
 
 function ScheduleTab() {
   const { poojaTimings, setPoojaTimings } = useAppContext();
-  
+
   const [dayIndex, setDayIndex] = useState(0);
-  const [time, setTime] = useState('');
+  const [hour, setHour] = useState('6');
+  const [minute, setMinute] = useState('00');
+  const [ampm, setAmpm] = useState('AM');
   const [name, setName] = useState('');
   const [heldBy, setHeldBy] = useState('');
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTime, setEditTime] = useState('');
+  const [editHour, setEditHour] = useState('6');
+  const [editMinute, setEditMinute] = useState('00');
+  const [editAmpm, setEditAmpm] = useState('AM');
   const [editName, setEditName] = useState('');
   const [editHeldBy, setEditHeldBy] = useState('');
 
+  const buildTime = (h: string, m: string, ap: string) => `${h}:${m} ${ap}`;
+
+  const parseTime = (t: string) => {
+    const match = t?.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (match) return { h: match[1], m: match[2], ap: match[3].toUpperCase() };
+    return { h: '6', m: '00', ap: 'AM' };
+  };
+
+  const hours = Array.from({ length: 12 }, (_, i) => String(i + 1));
+  const minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
+
+  const TimeSelect = ({ h, m, ap, onH, onM, onAp }: { h: string; m: string; ap: string; onH: (v: string) => void; onM: (v: string) => void; onAp: (v: string) => void }) => (
+    <div className="flex gap-1 items-center">
+      <select value={h} onChange={e => onH(e.target.value)} className="bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+        {hours.map(v => <option key={v} value={v} className="bg-zinc-900">{v}</option>)}
+      </select>
+      <span className="text-white/50 font-bold">:</span>
+      <select value={m} onChange={e => onM(e.target.value)} className="bg-black/40 border border-white/10 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]">
+        {minutes.map(v => <option key={v} value={v} className="bg-zinc-900">{v}</option>)}
+      </select>
+      <select value={ap} onChange={e => onAp(e.target.value)} className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:border-[#D4AF37] text-[#D4AF37] border-[#D4AF37]/30 bg-black/40">
+        <option value="AM" className="bg-zinc-900">AM</option>
+        <option value="PM" className="bg-zinc-900">PM</option>
+      </select>
+    </div>
+  );
+
   const addEvent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (time && name && poojaTimings[dayIndex]) {
+    if (name && poojaTimings[dayIndex]) {
       const newTimings = [...poojaTimings];
-      newTimings[dayIndex].events.push({ time, name, type: 'pooja', heldBy });
+      newTimings[dayIndex].events.push({ time: buildTime(hour, minute, ampm), name, type: 'pooja', heldBy });
       setPoojaTimings(newTimings);
-      setTime('');
       setName('');
       setHeldBy('');
     }
@@ -873,7 +903,8 @@ function ScheduleTab() {
 
   const startEdit = (dIdx: number, eIdx: number, ev: any) => {
     setEditingId(`${dIdx}-${eIdx}`);
-    setEditTime(ev.time);
+    const p = parseTime(ev.time);
+    setEditHour(p.h); setEditMinute(p.m); setEditAmpm(p.ap);
     setEditName(ev.name);
     setEditHeldBy(ev.heldBy || '');
   };
@@ -882,7 +913,7 @@ function ScheduleTab() {
     const newTimings = [...poojaTimings];
     newTimings[dIdx].events[eIdx] = {
       ...newTimings[dIdx].events[eIdx],
-      time: editTime,
+      time: buildTime(editHour, editMinute, editAmpm),
       name: editName,
       heldBy: editHeldBy
     };
@@ -896,17 +927,20 @@ function ScheduleTab() {
       <Card className="glass !p-6">
         <h3 className="font-serif gold-text text-xl mb-4">Add Pooja / Event</h3>
         <form onSubmit={addEvent} className="space-y-3">
-          <div className="flex gap-2">
-            <select 
-              value={dayIndex} 
+          <div className="flex gap-2 flex-wrap">
+            <select
+              value={dayIndex}
               onChange={e => setDayIndex(Number(e.target.value))}
-              className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+              className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37] flex-1 min-w-[140px]"
             >
               {poojaTimings.map((d: any, i: number) => (
-                <option key={i} value={i} className="bg-zinc-900">{d.day}</option>
+                <option key={i} value={i} className="bg-zinc-900">{d.day} — {d.date}</option>
               ))}
             </select>
-            <input type="text" value={time} onChange={e => setTime(e.target.value)} placeholder="Time (e.g. 5:00 PM)" className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" required />
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">సమయం ఎంచుకోండి</label>
+            <TimeSelect h={hour} m={minute} ap={ampm} onH={setHour} onM={setMinute} onAp={setAmpm} />
           </div>
           <div className="flex gap-2">
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Event Name" className="w-1/2 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" required />
@@ -919,7 +953,7 @@ function ScheduleTab() {
       <div className="space-y-6">
         {poojaTimings.map((day: any, i: number) => (
           <div key={i}>
-            <h4 className="font-bold gold-text mb-3">{day.day} - {day.date}</h4>
+            <h4 className="font-bold gold-text mb-3">{day.day} — {day.date}</h4>
             <div className="space-y-2">
               {day.events.map((ev: any, j: number) => {
                 const isEditing = editingId === `${i}-${j}`;
@@ -927,45 +961,36 @@ function ScheduleTab() {
                   <div key={j} className="glass p-3 rounded-lg flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm border-white/5 gap-3">
                     {isEditing ? (
                       <div className="flex-1 space-y-2">
+                        <TimeSelect h={editHour} m={editMinute} ap={editAmpm} onH={setEditHour} onM={setEditMinute} onAp={setEditAmpm} />
                         <div className="flex gap-2">
-                          <input type="text" value={editTime} onChange={e => setEditTime(e.target.value)} className="w-1/3 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white" placeholder="Time" />
                           <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white" placeholder="Name" />
+                          <input type="text" value={editHeldBy} onChange={e => setEditHeldBy(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white" placeholder="Held By" />
                         </div>
-                        <input type="text" value={editHeldBy} onChange={e => setEditHeldBy(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white" placeholder="Held By" />
                       </div>
                     ) : (
                       <div className="flex-1">
                         <span className="font-bold text-white/90 block">{ev.name}</span>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-white/50 text-xs">{ev.time}</span>
+                          <span className="text-[#D4AF37] text-xs font-bold">{ev.time}</span>
                           {ev.heldBy && (
                             <>
                               <span className="text-white/20 text-[10px]">•</span>
-                              <span className="text-[10px] uppercase tracking-wider text-gold-text">Held By: {ev.heldBy}</span>
+                              <span className="text-[10px] uppercase tracking-wider text-white/50">Held By: {ev.heldBy}</span>
                             </>
                           )}
                         </div>
                       </div>
                     )}
-                    
                     <div className="flex gap-2 justify-end">
                       {isEditing ? (
                         <>
-                          <button onClick={() => saveEdit(i, j)} className="p-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 rounded-lg transition-colors">
-                            <Check size={16} />
-                          </button>
-                          <button onClick={() => setEditingId(null)} className="p-2 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                            <X size={16} />
-                          </button>
+                          <button onClick={() => saveEdit(i, j)} className="p-2 bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/40 rounded-lg transition-colors"><Check size={16} /></button>
+                          <button onClick={() => setEditingId(null)} className="p-2 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"><X size={16} /></button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => startEdit(i, j, ev)} className="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 rounded-lg transition-colors">
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => deleteEvent(i, j)} className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600/40 rounded-lg transition-colors">
-                            <Trash2 size={16} />
-                          </button>
+                          <button onClick={() => startEdit(i, j, ev)} className="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 rounded-lg transition-colors"><Edit2 size={16} /></button>
+                          <button onClick={() => deleteEvent(i, j)} className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600/40 rounded-lg transition-colors"><Trash2 size={16} /></button>
                         </>
                       )}
                     </div>
