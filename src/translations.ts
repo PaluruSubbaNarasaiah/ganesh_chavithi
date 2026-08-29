@@ -47,8 +47,8 @@ export const translations = {
     heldBy: "Held By",
     
     // Committee
-    committeeTitle: "Committee Members",
-    committeeSub: "The organizers behind the festival.",
+    committeeTitle: "Committee Members & Volunteers",
+    committeeSub: "Meet the organizers and our volunteer team.",
     
     // Volunteer
     volunteer: "Volunteer Sign-up",
@@ -107,8 +107,8 @@ export const translations = {
     heldBy: "నిర్వాహకులు",
     
     // Committee
-    committeeTitle: "కమిటీ సభ్యులు",
-    committeeSub: "పండుగ వెనుక ఉన్న నిర్వాహకులు.",
+    committeeTitle: "కమిటీ సభ్యులు & వాలంటీర్లు",
+    committeeSub: "నిర్వాహకులు మరియు వాలంటీర్ బృందాన్ని కలవండి.",
     
     // Volunteer
     volunteer: "వాలంటీర్ నమోదు",

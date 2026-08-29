@@ -1,5 +1,11 @@
 -- Run this in Supabase SQL Editor:
 -- https://supabase.com/dashboard/project/htgfsbmdmnzmjafglgdo/sql/new
+--
+-- IMPORTANT: Before running this SQL, enable Email auth in Supabase:
+-- Dashboard → Authentication → Providers → Email → Enable
+-- Then create your admin user:
+-- Dashboard → Authentication → Users → Add User (enter email + password)
+--
 
 create table if not exists public.site_state (
   key text primary key,

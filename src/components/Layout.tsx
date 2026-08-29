@@ -90,7 +90,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <div>
               <h3 className="font-bold text-white/70 mb-3 text-xs uppercase tracking-wider">Quick Links</h3>
               <div className="space-y-2">
-                {[['/', 'Home'], ['/schedule', 'Pooja Schedule'], ['/gallery', 'Gallery'], ['/donate', 'Donate'], ['/volunteer', 'Volunteer'], ['/committee', 'Committee']].map(([to, label]) => (
+                {[['/', 'Home'], ['/schedule', 'Pooja Schedule'], ['/gallery', 'Gallery'], ['/donate', 'Donate'], ['/volunteer', 'Volunteer'], ['/committee', 'Committee & Volunteers']].map(([to, label]) => (
                   <Link key={to} to={to} className="block text-xs text-white/50 hover:text-[#D4AF37] transition-colors">{label}</Link>
                 ))}
               </div>

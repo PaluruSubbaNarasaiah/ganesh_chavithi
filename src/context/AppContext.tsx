@@ -11,11 +11,8 @@ import { supabase } from '../lib/supabase';
 
 const AppContext = createContext<any>(null);
 
-const ADMIN_PASSCODE = import.meta.env.VITE_ADMIN_PASSCODE || 'admin2026';
-
 const safeGet = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
 const safeSet = (key: string, v: string) => { try { localStorage.setItem(key, v); } catch { /* quota */ } };
-const safeRemove = (key: string) => { try { localStorage.removeItem(key); } catch { /* ignore */ } };
 const fromLS = <T,>(key: string, fallback: T): T => {
   const raw = safeGet(key);
   if (!raw) return fallback;
@@ -46,21 +43,33 @@ const stripScreenshots = (arr: any[]) =>
   arr.map(({ screenshot: _s, ...rest }) => rest);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(
-    () => safeGet('gc_admin_session') === 'true'
-  );
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [adminLoginError, setAdminLoginError] = useState('');
+  const [adminLoading, setAdminLoading] = useState(true);
 
-  const adminLogin = useCallback((passcode: string): boolean => {
-    if (passcode === ADMIN_PASSCODE) {
-      safeSet('gc_admin_session', 'true');
-      setIsAdminLoggedIn(true);
-      return true;
-    }
-    return false;
+  // Restore session from Supabase on mount
+  useEffect(() => {
+    if (!supabase) { setAdminLoading(false); return; }
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAdminLoggedIn(!!data.session);
+      setAdminLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdminLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
-  const adminLogout = useCallback(() => {
-    safeRemove('gc_admin_session');
+  const adminLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
+    if (!supabase) { setAdminLoginError('Supabase not configured.'); return false; }
+    setAdminLoginError('');
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setAdminLoginError(error.message); return false; }
+    return true;
+  }, []);
+
+  const adminLogout = useCallback(async () => {
+    if (supabase) await supabase.auth.signOut();
     setIsAdminLoggedIn(false);
   }, []);
 
@@ -222,7 +231,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      isAdminLoggedIn, adminLogin, adminLogout,
+      isAdminLoggedIn, adminLogin, adminLogout, adminLoginError, adminLoading,
       language, setLanguage, t,
       announcements, setAnnouncements: setAnnouncementsSync,
       stories, setStories: setStoriesSync,

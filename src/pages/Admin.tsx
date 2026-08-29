@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Card } from '../components/ui';
+import React, { useState } from 'react';import { Card } from '../components/ui';
 import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -25,9 +24,19 @@ const itemVariants = {
 };
 
 export default function Admin() {
-  const { isAdminLoggedIn, adminLogin, adminLogout } = useAppContext();
-  const [loginError, setLoginError] = useState('');
+  const { isAdminLoggedIn, adminLogin, adminLogout, adminLoginError, adminLoading } = useAppContext();
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  if (adminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0502]">
+        <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAdminLoggedIn) {
     return (
@@ -60,21 +69,39 @@ export default function Admin() {
           </div>
           
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              const passcode = (e.currentTarget.elements.namedItem('passcode') as HTMLInputElement).value;
-              const ok = adminLogin(passcode);
-              if (!ok) setLoginError('Incorrect passcode. Try again.');
+              setSubmitting(true);
+              await adminLogin(loginEmail, loginPassword);
+              setSubmitting(false);
             }}
             className="space-y-4"
           >
             <div>
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Passcode</label>
-              <input name="passcode" type="password" required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors text-center tracking-widest text-lg" placeholder="••••" />
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Email</label>
+              <input
+                type="email"
+                required
+                value={loginEmail}
+                onChange={e => setLoginEmail(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors"
+                placeholder="admin@example.com"
+              />
             </div>
-            {loginError && <p className="text-red-400 text-xs text-center">{loginError}</p>}
-            <button type="submit" className="w-full py-3 rounded-xl saffron-bg text-white font-bold hover:shadow-[0_0_20px_rgba(242,125,38,0.4)] transition-shadow uppercase tracking-wider text-sm">
-              Access Dashboard
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Password</label>
+              <input
+                type="password"
+                required
+                value={loginPassword}
+                onChange={e => setLoginPassword(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
+            {adminLoginError && <p className="text-red-400 text-xs text-center">{adminLoginError}</p>}
+            <button type="submit" disabled={submitting} className="w-full py-3 rounded-xl saffron-bg text-white font-bold hover:shadow-[0_0_20px_rgba(242,125,38,0.4)] transition-shadow uppercase tracking-wider text-sm disabled:opacity-60">
+              {submitting ? 'Signing in...' : 'Access Dashboard'}
             </button>
           </form>
         </Card>
