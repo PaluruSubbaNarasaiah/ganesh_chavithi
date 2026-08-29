@@ -166,10 +166,20 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           <div className="border-t border-white/10 pt-4 flex justify-between items-center">
             <p className="text-[10px] text-white/30 uppercase tracking-widest">© 2026 Sri Ganga Ghanapathi Committee · Allagadda</p>
-            <a href="https://palurusubbanarasaiah.github.io/my_portfolio/" target="_blank" rel="noopener noreferrer" className="text-[10px] text-white/30 flex items-center gap-1 hover:text-white/60 transition-colors">Made with <Heart size={10} className="text-red-400" /> for the community</a>
+            <p className="text-[10px] text-white/30 flex items-center gap-1">Made with <Heart size={10} className="text-red-400" /> <a href="https://palurusubbanarasaiah.github.io/my_portfolio/" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors underline underline-offset-2">Paluru Subba Narasaiah</a></p>
           </div>
         </div>
       </footer>
+
+      {/* Mobile Portfolio Credit */}
+      <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 flex justify-center pb-1 pointer-events-none">
+        <p className="pointer-events-auto flex items-center gap-1 text-[9px] text-white/20">
+          Made with <Heart size={8} className="text-red-400" />
+          <a href="https://palurusubbanarasaiah.github.io/my_portfolio/" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors underline underline-offset-2 pointer-events-auto">
+            Paluru Subba Narasaiah
+          </a>
+        </p>
+      </div>
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-t border-white/10 safe-area-pb">
