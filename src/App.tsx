@@ -14,22 +14,18 @@ import Committee from './pages/Committee';
 import Volunteer from './pages/Volunteer';
 import Admin from './pages/Admin';
 
-const githubPagesBasename = '/ganesh_chavithi';
+const basename = import.meta.env.VITE_BASE_PATH || '/';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return null;
 }
 
 export default function App() {
   return (
     <AppProvider>
-      <BrowserRouter basename={githubPagesBasename}>
+      <BrowserRouter basename={basename}>
         <ScrollToTop />
         <Layout>
           <Routes>
@@ -44,8 +40,6 @@ export default function App() {
             <Route path="/committee" element={<Committee />} />
             <Route path="/volunteer" element={<Volunteer />} />
             <Route path="/admin" element={<Admin />} />
-            {/* Catch all for "More" menu on mobile can just link to committee or a separate page, 
-                we'll map it to Home for now or handle it via Layout */}
             <Route path="/menu" element={<Committee />} />
           </Routes>
         </Layout>
