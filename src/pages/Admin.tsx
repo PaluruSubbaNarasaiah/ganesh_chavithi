@@ -1314,24 +1314,44 @@ function CommitteeTab() {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+  const fileRef = React.useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !role) return;
+    setUploading(true);
+
+    let photoUrl: string | null = editIndex !== null ? (committee[editIndex]?.photoUrl || null) : null;
+    if (photoFile) {
+      const { uploadProfileImage } = await import('../lib/supabase');
+      photoUrl = await uploadProfileImage(photoFile, 'committee');
+    }
 
     if (editIndex !== null) {
       const updated = [...committee];
-      updated[editIndex] = { name, role, phone };
+      updated[editIndex] = { ...updated[editIndex], name, role, phone, photoUrl };
       setCommittee(updated);
       setEditIndex(null);
     } else {
-      setCommittee([...committee, { name, role, phone }]);
+      setCommittee([...committee, { name, role, phone, photoUrl }]);
     }
 
-    setName('');
-    setRole('');
-    setPhone('');
+    setName(''); setRole(''); setPhone('');
+    setPhotoFile(null); setPhotoPreview(null);
+    setUploading(false);
   };
 
   const startEdit = (index: number) => {
@@ -1339,6 +1359,8 @@ function CommitteeTab() {
     setName(committee[index].name);
     setRole(committee[index].role);
     setPhone(committee[index].phone || '');
+    setPhotoPreview(committee[index].photoUrl || null);
+    setPhotoFile(null);
   };
 
   const removeMember = (index: number) => {
@@ -1351,9 +1373,8 @@ function CommitteeTab() {
 
   const cancelEdit = () => {
     setEditIndex(null);
-    setName('');
-    setRole('');
-    setPhone('');
+    setName(''); setRole(''); setPhone('');
+    setPhotoFile(null); setPhotoPreview(null);
   };
 
   return (
@@ -1361,6 +1382,25 @@ function CommitteeTab() {
       <Card className="glass !p-6">
         <h3 className="font-serif gold-text text-xl mb-4">{editIndex !== null ? 'Edit Member' : 'Add New Member'}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Photo upload */}
+          <div className="flex flex-col items-center gap-2">
+            <input type="file" accept="image/*" ref={fileRef} className="hidden" onChange={handlePhoto} />
+            <div
+              onClick={() => fileRef.current?.click()}
+              className="w-20 h-20 rounded-full border-2 border-dashed border-white/20 hover:border-[#D4AF37] transition-colors cursor-pointer overflow-hidden flex items-center justify-center bg-black/30"
+            >
+              {photoPreview ? (
+                <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center text-white/40">
+                  <ImageIcon size={20} />
+                  <span className="text-[9px] mt-1">Photo</span>
+                </div>
+              )}
+            </div>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider">Profile photo (optional)</p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Name</label>
@@ -1375,10 +1415,10 @@ function CommitteeTab() {
             <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Phone Number (Optional)</label>
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" placeholder="+91 98765 43210" />
           </div>
-          
+
           <div className="flex gap-2">
-            <button type="submit" className="flex-1 py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(242,125,38,0.3)] hover:shadow-[0_0_30px_rgba(242,125,38,0.5)] transition-shadow">
-              {editIndex !== null ? 'Update Member' : 'Add Member'}
+            <button type="submit" disabled={uploading} className="flex-1 py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(242,125,38,0.3)] hover:shadow-[0_0_30px_rgba(242,125,38,0.5)] transition-shadow disabled:opacity-60 flex items-center justify-center gap-2">
+              {uploading ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Uploading...</> : (editIndex !== null ? 'Update Member' : 'Add Member')}
             </button>
             {editIndex !== null && (
               <button type="button" onClick={cancelEdit} className="px-6 py-3 bg-white/10 rounded-xl text-white font-bold uppercase tracking-wider text-xs hover:bg-white/20 transition-colors border border-white/10">
@@ -1393,17 +1433,18 @@ function CommitteeTab() {
         <h3 className="font-serif gold-text text-xl mb-4">Current Members</h3>
         <div className="space-y-2">
           {committee.map((member: any, i: number) => (
-            <div key={i} className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5 hover:border-white/20 transition-colors">
-              <div>
+            <div key={i} className="flex items-center gap-3 p-3 bg-black/40 rounded-xl border border-white/5 hover:border-white/20 transition-colors">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 shrink-0 bg-black/40 flex items-center justify-center">
+                {member.photoUrl
+                  ? <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
+                  : <span className="text-sm font-serif gold-text">{member.name.charAt(0)}</span>
+                }
+              </div>
+              <div className="flex-1">
                 <p className="font-bold text-sm text-white/90">{member.name}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold">{member.role}</span>
-                  {member.phone && (
-                    <>
-                      <span className="text-white/20">•</span>
-                      <span className="text-xs text-white/50">{member.phone}</span>
-                    </>
-                  )}
+                  {member.phone && <><span className="text-white/20">•</span><span className="text-xs text-white/50">{member.phone}</span></>}
                 </div>
               </div>
               <div className="flex gap-2">

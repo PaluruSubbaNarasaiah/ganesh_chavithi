@@ -2,6 +2,17 @@ import { SectionTitle, Card } from '../components/ui';
 import { useAppContext } from '../context/AppContext';
 import { Phone, MessageCircle, Users, Shield } from 'lucide-react';
 
+function Avatar({ name, photoUrl, color }: { name: string; photoUrl?: string; color: string }) {
+  return (
+    <div className={`w-14 h-14 rounded-full shrink-0 overflow-hidden border-2 ${color} bg-black/40 flex items-center justify-center`}>
+      {photoUrl
+        ? <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
+        : <span className="text-xl font-serif gold-text">{name.charAt(0)}</span>
+      }
+    </div>
+  );
+}
+
 export default function Committee() {
   const { committee, volunteers, t } = useAppContext();
   const approvedVolunteers = (volunteers as any[]).filter((v) => v.status === 'approved');
@@ -21,9 +32,7 @@ export default function Committee() {
         )}
         {committee.map((member: any, i: number) => (
           <Card key={i} className="flex items-center gap-4 !p-4">
-            <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center shrink-0 border border-[#D4AF37]/30">
-              <span className="text-lg font-serif gold-text">{member.name.charAt(0)}</span>
-            </div>
+            <Avatar name={member.name} photoUrl={member.photoUrl} color="border-[#D4AF37]/30" />
             <div className="flex-1">
               <h3 className="font-bold text-white/90">{member.name}</h3>
               <p className="text-[10px] uppercase font-bold tracking-wider text-[#D4AF37]/70">{member.role}</p>
@@ -58,9 +67,7 @@ export default function Committee() {
         )}
         {approvedVolunteers.map((vol: any) => (
           <Card key={vol.id} className="flex items-center gap-4 !p-4">
-            <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20">
-              <span className="text-lg font-serif text-orange-400">{vol.name.charAt(0)}</span>
-            </div>
+            <Avatar name={vol.name} photoUrl={vol.photoUrl} color="border-orange-500/20" />
             <div className="flex-1">
               <h3 className="font-bold text-white/90">{vol.name}</h3>
               <p className="text-[10px] uppercase font-bold tracking-wider text-orange-400/70">{vol.role}</p>
