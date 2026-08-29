@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, MapPin, Video, Calendar, Settings, Languages, Heart, Phone, Mail } from 'lucide-react';
+import { Home, Image, MapPin, Video, Calendar, Settings, Languages, Heart, Phone, Mail, Bell, X, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
@@ -8,7 +8,11 @@ import bgImage from '../assets/images/regenerated_image_1787252044935.png';
 
 export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const { language, setLanguage, t } = useAppContext();
+  const { language, setLanguage, t, notifications } = useAppContext();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [dismissed, setDismissed] = useState<string[]>([]);
+  const activeNotifs = (notifications as any[]).filter((n: any) => !dismissed.includes(n.id));
+  const unreadCount = activeNotifs.length;
   
   const isSetup = location.pathname.startsWith('/admin');
 
@@ -48,6 +52,19 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           
           <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <button
+              onClick={() => setNotifOpen(o => !o)}
+              className="relative p-2 glass rounded-full text-white/60 hover:text-white transition-colors border border-white/10"
+              title={t('notifications')}
+            >
+              <Bell size={16} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-bold flex items-center justify-center text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
             <button 
               onClick={() => setLanguage(language === 'en' ? 'te' : 'en')}
               className="flex items-center gap-1.5 glass px-3 py-1.5 rounded-full text-[10px] font-bold hover:bg-white/10 transition-colors uppercase tracking-wider gold-text border border-[#D4AF37]/30"
@@ -63,7 +80,50 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Notification Panel */}
+      <AnimatePresence>
+        {notifOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="relative z-20 w-full max-w-7xl mx-auto px-4 pt-2"
+          >
+            <div className="glass rounded-2xl border border-white/10 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                <span className="text-xs font-bold uppercase tracking-widest gold-text">{t('notifications')}</span>
+                <button onClick={() => setNotifOpen(false)} className="text-white/40 hover:text-white transition-colors"><X size={16} /></button>
+              </div>
+              {activeNotifs.length === 0 ? (
+                <p className="text-white/40 text-xs text-center py-6">{t('noNotifications')}</p>
+              ) : (
+                <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
+                  {activeNotifs.map((n: any) => (
+                    <div key={n.id} className="flex items-start gap-3 px-4 py-3">
+                      <div className={`mt-0.5 shrink-0 ${
+                        n.type === 'warning' ? 'text-yellow-400' :
+                        n.type === 'success' ? 'text-emerald-400' : 'text-blue-400'
+                      }`}>
+                        {n.type === 'warning' ? <AlertTriangle size={16} /> :
+                         n.type === 'success' ? <CheckCircle size={16} /> :
+                         <Info size={16} />}
+                      </div>
+                      <p className="flex-1 text-sm text-white/80 leading-relaxed">{n.message}</p>
+                      <button
+                        onClick={() => setDismissed(d => [...d, n.id])}
+                        className="text-white/30 hover:text-white/70 transition-colors shrink-0 text-[10px] uppercase tracking-wider font-bold"
+                      >
+                        {t('notifDismiss')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <main className="flex-1 relative z-10 flex flex-col w-full max-w-7xl mx-auto p-4">
         <AnimatePresence mode="wait">
           <motion.div
@@ -106,7 +166,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
           <div className="border-t border-white/10 pt-4 flex justify-between items-center">
             <p className="text-[10px] text-white/30 uppercase tracking-widest">© 2026 Sri Ganga Ghanapathi Committee · Allagadda</p>
-            <p className="text-[10px] text-white/30 flex items-center gap-1">Made with <Heart size={10} className="text-red-400" /> for the community</p>
+            <a href="https://palurusubbanarasaiah.github.io/my_portfolio/" target="_blank" rel="noopener noreferrer" className="text-[10px] text-white/30 flex items-center gap-1 hover:text-white/60 transition-colors">Made with <Heart size={10} className="text-red-400" /> for the community</a>
           </div>
         </div>
       </footer>

@@ -97,7 +97,7 @@ export default function Volunteer() {
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-white/40 uppercase tracking-wider">Profile photo (optional)</p>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('volunteerPhoto')}</p>
               </div>
 
               <div>

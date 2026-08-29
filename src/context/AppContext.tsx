@@ -109,6 +109,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [donations, setDonations] = useState<any[]>(
     () => fromLS('gc_donations', [])
   );
+  const [notifications, setNotifications] = useState<any[]>(
+    () => fromLS('gc_notifications', [])
+  );
 
   // Persist to localStorage
   useEffect(() => safeSet('gc_language', language), [language]);
@@ -120,11 +123,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => safeSet('gc_live', JSON.stringify(liveEvent)), [liveEvent]);
   useEffect(() => safeSet('gc_volunteers', JSON.stringify(volunteers)), [volunteers]);
   useEffect(() => safeSet('gc_donations', JSON.stringify(donations)), [donations]);
+  useEffect(() => safeSet('gc_notifications', JSON.stringify(notifications)), [notifications]);
 
   // Load from Supabase on mount — Supabase is source of truth
   useEffect(() => {
     (async () => {
-      const [anns, comm, vols, dons, live, timings, gall, stors] = await Promise.all([
+      const [anns, comm, vols, dons, live, timings, gall, stors, notifs] = await Promise.all([
         sbGet('announcements'),
         sbGet('committee'),
         sbGet('volunteers'),
@@ -133,6 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sbGet('poojaTimings'),
         sbGet('gallery'),
         sbGet('stories'),
+        sbGet('notifications'),
       ]);
       if (Array.isArray(anns)) setAnnouncements(anns);
       if (Array.isArray(comm)) setCommittee(comm);
@@ -150,6 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (Array.isArray(timings)) setPoojaTimings(timings);
       if (Array.isArray(gall)) setGallery(gall);
       if (Array.isArray(stors)) setStories(stors);
+      if (Array.isArray(notifs)) setNotifications(notifs);
     })();
   }, []);
 
@@ -168,6 +174,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (key === 'stories' && Array.isArray(value)) setStories(value);
         if (key === 'liveEvent' && value) setLiveEvent(value);
         if (key === 'volunteers' && Array.isArray(value)) setVolunteers(value);
+        if (key === 'notifications' && Array.isArray(value)) setNotifications(value);
         if (key === 'donations' && Array.isArray(value)) {
           // Merge screenshots from localStorage
           setDonations(prev => value.map((d: any) => {
@@ -221,6 +228,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await sbSet('gallery', forSupabase);
   }, []);
 
+  const setNotificationsSync = useCallback(async (next: any[]) => {
+    setNotifications(next);
+    await sbSet('notifications', next);
+  }, []);
+
   const setStoriesSync = useCallback(async (next: any[]) => {
     setStories(next);
     await sbSet('stories', next);
@@ -240,6 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       committee, setCommittee: setCommitteeSync,
       liveEvent, setLiveEvent: setLiveEventSync,
       volunteers, setVolunteers: setVolunteersSync,
+      notifications, setNotifications: setNotificationsSync,
       donations, setDonations: setDonationsSync,
     }}>
       {children}

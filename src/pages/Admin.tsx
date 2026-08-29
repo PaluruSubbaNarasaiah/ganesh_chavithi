@@ -1,5 +1,5 @@
 import React, { useState } from 'react';import { Card } from '../components/ui';
-import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp } from 'lucide-react';
+import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp, Bell, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -115,6 +115,7 @@ export default function Admin() {
     switch (activeTab) {
       case 'dashboard': return <DashboardTab setActiveTab={setActiveTab} />;
       case 'announcements': return <AnnouncementsTab />;
+      case 'notifications': return <NotificationsTab />;
       case 'gallery': return <GalleryTab />;
       case 'stories': return <StoriesTab />;
       case 'schedule': return <ScheduleTab />;
@@ -163,6 +164,7 @@ export default function Admin() {
         <div className="hidden md:flex flex-col w-64 gap-2">
           <NavBtn active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={18} />} label="Dashboard" />
           <NavBtn active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} icon={<Megaphone size={18} />} label="Announcements" />
+          <NavBtn active={activeTab === 'notifications'} onClick={() => setActiveTab('notifications')} icon={<Bell size={18} />} label="Notifications" />
           <NavBtn active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Calendar size={18} />} label="Pooja Timings" />
           <NavBtn active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon size={18} />} label="Gallery" />
           <NavBtn active={activeTab === 'stories'} onClick={() => setActiveTab('stories')} icon={<BookOpen size={18} />} label="Stories" />
@@ -176,6 +178,7 @@ export default function Admin() {
         <div className="md:hidden flex overflow-x-auto pb-2 gap-2 hide-scrollbar">
            <NavBtn active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={16} />} label="Dash" mobile />
            <NavBtn active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} icon={<Megaphone size={16} />} label="Alerts" mobile />
+           <NavBtn active={activeTab === 'notifications'} onClick={() => setActiveTab('notifications')} icon={<Bell size={16} />} label="Notifs" mobile />
            <NavBtn active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Calendar size={16} />} label="Pooja" mobile />
            <NavBtn active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon size={16} />} label="Gallery" mobile />
            <NavBtn active={activeTab === 'stories'} onClick={() => setActiveTab('stories')} icon={<BookOpen size={16} />} label="Stories" mobile />
@@ -313,6 +316,84 @@ function DashboardTab({ setActiveTab }: { setActiveTab: (t: string) => void }) {
           <ManageCard title="Manage Committee" onClick={() => setActiveTab('committee')} />
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function NotificationsTab() {
+  const { notifications, setNotifications } = useAppContext();
+  const [message, setMessage] = useState('');
+  const [type, setType] = useState<'info' | 'warning' | 'success'>('info');
+
+  const add = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    setNotifications([{ id: Date.now().toString(), message, type, createdAt: new Date().toISOString() }, ...notifications]);
+    setMessage('');
+    setType('info');
+  };
+
+  const remove = (id: string) => setNotifications(notifications.filter((n: any) => n.id !== id));
+
+  const typeStyles: Record<string, string> = {
+    info: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    warning: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    success: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  };
+  const typeIcon: Record<string, React.ReactNode> = {
+    info: <Info size={16} />,
+    warning: <AlertTriangle size={16} />,
+    success: <CheckCircle size={16} />,
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass !p-6">
+        <h3 className="font-serif gold-text text-xl mb-4">Send Notification</h3>
+        <form onSubmit={add} className="space-y-3">
+          <div className="flex gap-2">
+            {(['info', 'warning', 'success'] as const).map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setType(t)}
+                className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                  type === t ? typeStyles[t] : 'bg-white/5 text-white/40 border-white/10'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            placeholder="Notification message visible to all visitors..."
+            rows={3}
+            required
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#D4AF37] resize-none"
+          />
+          <button type="submit" className="w-full py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs">
+            Publish Notification
+          </button>
+        </form>
+      </Card>
+
+      <div className="space-y-3">
+        {notifications.length === 0 && <p className="text-white/40 text-sm text-center py-4">No notifications published.</p>}
+        {notifications.map((n: any) => (
+          <Card key={n.id} className={`glass !p-4 flex items-start gap-3 border ${typeStyles[n.type] || typeStyles.info}`}>
+            <div className="mt-0.5 shrink-0">{typeIcon[n.type] || typeIcon.info}</div>
+            <div className="flex-1">
+              <p className="text-sm text-white/90">{n.message}</p>
+              <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider">{new Date(n.createdAt).toLocaleString()}</p>
+            </div>
+            <button onClick={() => remove(n.id)} className="text-white/30 hover:text-red-400 transition-colors shrink-0">
+              <Trash2 size={16} />
+            </button>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

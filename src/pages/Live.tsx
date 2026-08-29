@@ -8,11 +8,11 @@ export default function Live() {
   return (
     <div className="py-4">
       <SectionTitle title={t('liveStreaming')} subtitle={t('liveStreamingSub')} />
-      
+
       <Card className="!p-0 overflow-hidden mb-6 border-white/10">
         <div className="aspect-video bg-black relative flex items-center justify-center group cursor-pointer">
-          <img 
-            src={liveEvent.url} 
+          <img
+            src={liveEvent.url}
             alt="Live Stream Preview"
             className="w-full h-full object-cover opacity-50 group-hover:opacity-40 transition-opacity"
           />
@@ -22,7 +22,7 @@ export default function Live() {
             </div>
           )}
           <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-white/10">
-            <Users size={14} /> {liveEvent.viewers}
+            <Users size={14} /> {liveEvent.viewers} {t('viewers')}
           </div>
           <PlayCircle size={64} className="absolute text-white opacity-80 group-hover:scale-110 transition-transform drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]" />
         </div>
@@ -31,14 +31,14 @@ export default function Live() {
           <p className="text-white/60 text-sm mt-1">{liveEvent.description}</p>
         </div>
       </Card>
-      
-      <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] opacity-50 mb-4 px-1">Upcoming Streams</h3>
+
+      <h3 className="font-bold text-[10px] uppercase tracking-[0.3em] opacity-50 mb-4 px-1">{t('upcomingStreams')}</h3>
       <div className="space-y-4">
         <Card className="flex items-center gap-4 !p-3">
           <div className="w-24 h-16 bg-black/40 rounded-lg shrink-0 border border-white/5"></div>
           <div>
-            <h4 className="font-bold text-sm text-white/90">Tomorrow Morning Abhishekam</h4>
-            <p className="text-[10px] uppercase tracking-widest text-white/50 mt-1">Starts at 8:00 AM</p>
+            <h4 className="font-bold text-sm text-white/90">{t('tomorrowStream')}</h4>
+            <p className="text-[10px] uppercase tracking-widest text-white/50 mt-1">{t('tomorrowStreamTime')}</p>
           </div>
         </Card>
       </div>

@@ -24,11 +24,11 @@ export default function Committee() {
       {/* Committee Members */}
       <div className="flex items-center gap-2 mb-3 mt-2">
         <Shield size={14} className="gold-text" />
-        <h2 className="text-[10px] uppercase font-bold tracking-[0.3em] gold-text">Committee Members</h2>
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.3em] gold-text">{t('committeeSection')}</h2>
       </div>
       <div className="space-y-3 mb-8">
         {committee.length === 0 && (
-          <p className="text-white/30 text-sm text-center py-6 italic">No committee members added yet.</p>
+          <p className="text-white/30 text-sm text-center py-6 italic">{t('noCommittee')}</p>
         )}
         {committee.map((member: any, i: number) => (
           <Card key={i} className="flex items-center gap-4 !p-4">
@@ -54,7 +54,7 @@ export default function Committee() {
       {/* Approved Volunteers */}
       <div className="flex items-center gap-2 mb-3">
         <Users size={14} className="text-orange-400" />
-        <h2 className="text-[10px] uppercase font-bold tracking-[0.3em] text-orange-400">Volunteers</h2>
+        <h2 className="text-[10px] uppercase font-bold tracking-[0.3em] text-orange-400">{t('volunteersSection')}</h2>
         {approvedVolunteers.length > 0 && (
           <span className="ml-auto text-[10px] bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded-full font-bold">
             {approvedVolunteers.length} Active
@@ -63,7 +63,7 @@ export default function Committee() {
       </div>
       <div className="space-y-3">
         {approvedVolunteers.length === 0 && (
-          <p className="text-white/30 text-sm text-center py-6 italic">No approved volunteers yet.</p>
+          <p className="text-white/30 text-sm text-center py-6 italic">{t('noVolunteers')}</p>
         )}
         {approvedVolunteers.map((vol: any) => (
           <Card key={vol.id} className="flex items-center gap-4 !p-4">
