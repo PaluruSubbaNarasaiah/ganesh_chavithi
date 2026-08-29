@@ -149,7 +149,7 @@ export default function Admin() {
         ></div>
         <div className="fixed inset-0 z-0 bg-gradient-to-b from-black/90 via-black/80 to-[#0a0502] backdrop-blur-sm"></div>
 
-      <header className="bg-black/40 border-b border-white/10 p-4 sticky top-0 z-20 backdrop-blur-md relative z-20">
+      <header className="bg-black/60 border-b border-white/10 p-4 sticky top-0 z-30 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="font-bold text-lg gold-text font-serif">Committee Admin</h1>

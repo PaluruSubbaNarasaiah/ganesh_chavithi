@@ -37,7 +37,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 p-4 sticky top-0 bg-black/40 backdrop-blur-xl border-b border-white/10">
+      <header className="sticky top-0 z-30 p-4 bg-black/60 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full saffron-bg flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(242,125,38,0.5)] group-hover:scale-105 transition-transform">
@@ -80,7 +80,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {/* Notification Panel */}
+      {/* Notification Panel — anchored below sticky header, does not push content */}
       <AnimatePresence>
         {notifOpen && (
           <motion.div
@@ -88,7 +88,7 @@ export function Layout({ children }: { children: ReactNode }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="relative z-20 w-full max-w-7xl mx-auto px-4 pt-2"
+            className="fixed top-[65px] left-0 right-0 z-20 px-4 max-w-7xl mx-auto"
           >
             <div className="glass rounded-2xl border border-white/10 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
@@ -124,7 +124,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </motion.div>
         )}
       </AnimatePresence>
-      <main className="flex-1 relative z-10 flex flex-col w-full max-w-7xl mx-auto p-4">
+      <main className="flex-1 flex flex-col w-full max-w-7xl mx-auto p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -140,7 +140,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl mt-auto mb-16 md:mb-0">
+      <footer className="border-t border-white/10 bg-black/40 backdrop-blur-xl mt-auto mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
             <div>
