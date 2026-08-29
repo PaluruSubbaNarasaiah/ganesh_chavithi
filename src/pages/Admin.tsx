@@ -25,10 +25,11 @@ const itemVariants = {
 };
 
 export default function Admin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAdminLoggedIn, adminLogin, adminLogout } = useAppContext();
+  const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  if (!isLoggedIn) {
+  if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0502]">
         <div 
@@ -58,17 +59,20 @@ export default function Admin() {
             <p className="text-white/50 text-xs uppercase tracking-widest mt-2">Committee Members Only</p>
           </div>
           
-          <form 
+          <form
             onSubmit={(e) => {
               e.preventDefault();
-              setIsLoggedIn(true);
+              const passcode = (e.currentTarget.elements.namedItem('passcode') as HTMLInputElement).value;
+              const ok = adminLogin(passcode);
+              if (!ok) setLoginError('Incorrect passcode. Try again.');
             }}
             className="space-y-4"
           >
             <div>
               <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-2">Passcode</label>
-              <input type="password" required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors text-center tracking-widest text-lg" placeholder="••••" />
+              <input name="passcode" type="password" required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#D4AF37] transition-colors text-center tracking-widest text-lg" placeholder="••••" />
             </div>
+            {loginError && <p className="text-red-400 text-xs text-center">{loginError}</p>}
             <button type="submit" className="w-full py-3 rounded-xl saffron-bg text-white font-bold hover:shadow-[0_0_20px_rgba(242,125,38,0.4)] transition-shadow uppercase tracking-wider text-sm">
               Access Dashboard
             </button>
@@ -120,7 +124,7 @@ export default function Admin() {
             <h1 className="font-bold text-lg gold-text font-serif">Committee Admin</h1>
             <p className="text-[10px] uppercase tracking-widest text-white/50">Ganesh Chavithi 2026</p>
           </div>
-          <button onClick={() => setIsLoggedIn(false)} className="p-2 text-white/50 hover:text-white transition-colors">
+          <button onClick={adminLogout} className="p-2 text-white/50 hover:text-white transition-colors">
             <LogOut size={20} />
           </button>
         </div>

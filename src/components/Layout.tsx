@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, MapPin, Video, Calendar, UserRound, IndianRupee, Trophy, Info, Settings, Languages } from 'lucide-react';
+import { Home, Image, MapPin, Video, Calendar, Settings, Languages, Heart, Phone, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
+import bgImage from '../assets/images/regenerated_image_1787252044935.png';
 
 export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -22,7 +23,7 @@ export function Layout({ children }: { children: ReactNode }) {
         {/* Background Image - user must upload their image to public/bg.png or use this fallback */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity"
-          style={{ backgroundImage: `url('/bg.png')` }}
+          style={{ backgroundImage: `url(${bgImage})` }}
         ></div>
         
         {/* Immersive Gradients over the image to keep text readable */}
@@ -77,6 +78,38 @@ export function Layout({ children }: { children: ReactNode }) {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Footer */}
+      <footer className="hidden md:block relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl mt-auto">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-3 gap-8 mb-6">
+            <div>
+              <h3 className="font-serif gold-text font-bold mb-3 text-sm uppercase tracking-wider">Sri Ganga Ghanapathi</h3>
+              <p className="text-white/50 text-xs leading-relaxed">Celebrating Ganesh Chavithi 2026 with devotion, community, and joy in Allagadda, Andhra Pradesh.</p>
+            </div>
+            <div>
+              <h3 className="font-bold text-white/70 mb-3 text-xs uppercase tracking-wider">Quick Links</h3>
+              <div className="space-y-2">
+                {[['/', 'Home'], ['/schedule', 'Pooja Schedule'], ['/gallery', 'Gallery'], ['/donate', 'Donate'], ['/volunteer', 'Volunteer'], ['/committee', 'Committee']].map(([to, label]) => (
+                  <Link key={to} to={to} className="block text-xs text-white/50 hover:text-[#D4AF37] transition-colors">{label}</Link>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="font-bold text-white/70 mb-3 text-xs uppercase tracking-wider">Contact</h3>
+              <div className="space-y-2">
+                <a href="tel:+918970584121" className="flex items-center gap-2 text-xs text-white/50 hover:text-white transition-colors"><Phone size={12} /> +91 89705 84121</a>
+                <a href="mailto:info@ganeshchavithi2026.in" className="flex items-center gap-2 text-xs text-white/50 hover:text-white transition-colors"><Mail size={12} /> info@ganeshchavithi2026.in</a>
+                <p className="flex items-center gap-2 text-xs text-white/50"><MapPin size={12} /> Adranam Street, Allagadda, AP 518543</p>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-4 flex justify-between items-center">
+            <p className="text-[10px] text-white/30 uppercase tracking-widest">© 2026 Sri Ganga Ghanapathi Committee · Allagadda</p>
+            <p className="text-[10px] text-white/30 flex items-center gap-1">Made with <Heart size={10} className="text-red-400" /> for the community</p>
+          </div>
+        </div>
+      </footer>
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-t border-white/10 safe-area-pb">
