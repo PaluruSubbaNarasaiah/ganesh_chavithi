@@ -8,6 +8,7 @@ import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import heroImage from '../assets/images/regenerated_image_1787252044935.png';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
+import { uploadProfileImage } from '../lib/supabase';
 
 const tabContainerVariants = {
   hidden: { opacity: 0 },
@@ -1336,7 +1337,6 @@ function CommitteeTab() {
 
     let photoUrl: string | null = editIndex !== null ? (committee[editIndex]?.photoUrl || null) : null;
     if (photoFile) {
-      const { uploadProfileImage } = await import('../lib/supabase');
       photoUrl = await uploadProfileImage(photoFile, 'committee');
     }
 
