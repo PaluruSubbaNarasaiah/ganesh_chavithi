@@ -1,5 +1,6 @@
-import React, { useState } from 'react';import { Card } from '../components/ui';
-import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp, Bell, Info, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card } from '../components/ui';
+import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp, Bell, Info, AlertTriangle, CheckCircle, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -601,6 +602,244 @@ function StoriesTab() {
   );
 }
 
+// --- WHATSAPP REMINDER TEMPLATES ---
+
+type ReminderType = 'reminder' | 'dayof' | 'thankyou' | 'custom';
+
+function buildPoojaWhatsAppMessage(type: ReminderType, sponsorName: string, poojaName: string, time: string, day: string, date: string): string {
+  if (type === 'reminder') {
+    return [
+      `🙏 *శ్రీ గంగా ఘనపతి - గణేష్ చవితి 2026*`,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
+      ``,
+      `నమస్కారం ${sponsorName} గారూ! 🌸`,
+      ``,
+      `మీరు స్పాన్సర్ చేసిన పూజ వివరాలు క్రింద తెలియజేయడమైనది:`,
+      ``,
+      `📿 పూజ పేరు  :  *${poojaName}*`,
+      `📅 రోజు       :  ${day}`,
+      `🗓️ తేదీ       :  ${date}`,
+      `⏰ సమయం    :  *${time}*`,
+      ``,
+      `దయచేసి నిర్ణీత సమయానికి విచ్చేయగలరు.`,
+      `మీ సహకారానికి ముందుగానే ధన్యవాదాలు 🙏`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
+      `🏛️ శ్రీ గంగా ఘనపతి కమిటీ`,
+      `📍 ఆద్రణం వీధి, అల్లగడ్డ, ఆంధ్రప్రదేశ్ - 518543`,
+      `📞 +91 89705 84121`,
+    ].join('\n');
+  }
+  if (type === 'dayof') {
+    return [
+      `🔔 *గణేష్ చవితి 2026 - నేటి పూజ గుర్తు చేయుట*`,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
+      ``,
+      `${sponsorName} గారూ, నమస్కారం! 🙏`,
+      ``,
+      `నేడు మీరు స్పాన్సర్ చేసిన పూజ జరుగుతుంది:`,
+      ``,
+      `📿 పూజ పేరు  :  *${poojaName}*`,
+      `⏰ సమయం    :  *${time}*`,
+      ``,
+      `దయచేసి సమయానికి విచ్చేసి పూజలో పాల్గొనగలరు 🌺`,
+      ``,
+      `మీ భక్తి మరియు సహకారానికి హృదయపూర్వక ధన్యవాదాలు 🙏`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
+      `🏛️ శ్రీ గంగా ఘనపతి కమిటీ`,
+      `📍 ఆద్రణం వీధి, అల్లగడ్డ, ఆంధ్రప్రదేశ్ - 518543`,
+      `📞 +91 89705 84121`,
+    ].join('\n');
+  }
+  if (type === 'thankyou') {
+    return [
+      `🙏 *ధన్యవాదాలు - గణేష్ చవితి 2026*`,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
+      ``,
+      `${sponsorName} గారూ,`,
+      ``,
+      `*${poojaName}* పూజను స్పాన్సర్ చేసినందుకు మీకు హృదయపూర్వక ధన్యవాదాలు! 🌸`,
+      ``,
+      `మీ భక్తి, దానగుణం మరియు సహకారం మా ఉత్సవాన్ని మరింత వైభవంగా నిర్వహించడానికి తోడ్పడింది.`,
+      ``,
+      `శ్రీ గణపతి మీకు మరియు మీ కుటుంబానికి సర్వ శుభాలు కలిగించాలని ప్రార్థిస్తున్నాము 🐘`,
+      ``,
+      `గణపతి బప్పా మోరయా! 🎺`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━`,
+      `🏛️ శ్రీ గంగా ఘనపతి కమిటీ`,
+      `📍 ఆద్రణం వీధి, అల్లగడ్డ, ఆంధ్రప్రదేశ్ - 518543`,
+      `📞 +91 89705 84121`,
+    ].join('\n');
+  }
+  // custom — return blank for admin to type freely
+  return `🙏 *శ్రీ గంగా ఘనపతి - గణేష్ చవితి 2026*
+━━━━━━━━━━━━━━━━━━━━━━
+
+${sponsorName} గారూ,
+
+`;
+}
+
+function WhatsAppRemindersPanel({ poojaTimings }: { poojaTimings: any[] }) {
+  const [template, setTemplate] = useState<ReminderType>('reminder');
+  const [phone, setPhone] = useState('');
+  const [sponsorName, setSponsorName] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState('');
+  const [preview, setPreview] = useState('');
+
+  // Flatten all events that have heldBy
+  const sponsoredEvents = poojaTimings.flatMap((day: any) =>
+    day.events
+      .filter((ev: any) => ev.heldBy)
+      .map((ev: any) => ({ ...ev, day: day.day, date: day.date, key: `${day.day}|${ev.name}|${ev.time}` }))
+  );
+
+  const handleEventChange = (key: string) => {
+    setSelectedEvent(key);
+    const ev = sponsoredEvents.find((e: any) => e.key === key);
+    if (ev) {
+      setSponsorName(ev.heldBy);
+      setPreview(buildPoojaWhatsAppMessage(template, ev.heldBy, ev.name, ev.time, ev.day, ev.date));
+    }
+  };
+
+  const handleTemplateChange = (t: ReminderType) => {
+    setTemplate(t);
+    const ev = sponsoredEvents.find((e: any) => e.key === selectedEvent);
+    if (ev) {
+      setPreview(buildPoojaWhatsAppMessage(t, sponsorName || ev.heldBy, ev.name, ev.time, ev.day, ev.date));
+    }
+  };
+
+  const handleSponsorNameChange = (val: string) => {
+    setSponsorName(val);
+    const ev = sponsoredEvents.find((e: any) => e.key === selectedEvent);
+    if (ev) {
+      setPreview(buildPoojaWhatsAppMessage(template, val, ev.name, ev.time, ev.day, ev.date));
+    }
+  };
+
+  const sendWhatsApp = () => {
+    const clean = phone.replace(/\D/g, '');
+    if (!clean || !preview) return;
+    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(preview)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const templateLabels: Record<ReminderType, string> = {
+    reminder: '📅 ముందస్తు గుర్తు',
+    dayof: '🔔 నేటి పూజ',
+    thankyou: '🙏 ధన్యవాదాలు',
+    custom: '✏️ స్వంత సందేశం',
+  };
+
+  return (
+    <Card className="glass !p-6">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+          <MessageCircle className="text-emerald-400" size={20} />
+        </div>
+        <div>
+          <h3 className="font-serif gold-text text-xl">వాట్సాప్ రిమైండర్లు</h3>
+          <p className="text-[10px] uppercase tracking-widest text-white/40">పూజ స్పాన్సర్లకు పంపించండి</p>
+        </div>
+      </div>
+
+      {sponsoredEvents.length === 0 ? (
+        <p className="text-white/40 text-sm text-center py-6 border border-dashed border-white/10 rounded-xl">
+          ఇంకా స్పాన్సర్ చేసిన పూజలు లేవు. క్రింద పూజ జోడించేటపుడు "పూజ చేసినవారు" పేరు నమోదు చేయండి.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {/* Template selector */}
+          <div className="flex gap-2">
+            {(Object.keys(templateLabels) as ReminderType[]).map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => handleTemplateChange(t)}
+                className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                  template === t
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-white/5 text-white/40 border-white/10'
+                }`}
+              >
+                {templateLabels[t]}
+              </button>
+            ))}
+          </div>
+
+          {/* Event picker */}
+          <div>
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">పూజ / కార్యక్రమం ఎంచుకోండి</label>
+            <select
+              value={selectedEvent}
+              onChange={e => handleEventChange(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+            >
+              <option value="" className="bg-zinc-900">-- పూజ ఎంచుకోండి --</option>
+              {sponsoredEvents.map((ev: any) => (
+                <option key={ev.key} value={ev.key} className="bg-zinc-900">
+                  {ev.name} — {ev.time} ({ev.day}) — చేసినవారు: {ev.heldBy}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedEvent && (
+            <>
+              {/* Sponsor name override */}
+              <div>
+                <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">స్పాన్సర్ పేరు (మార్చవచ్చు)</label>
+                <input
+                  type="text"
+                  value={sponsorName}
+                  onChange={e => handleSponsorNameChange(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">స్పాన్సర్ వాట్సాప్ నంబర్</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                />
+              </div>
+
+              {/* Message preview */}
+              <div>
+                <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">సందేశం చూడండి / మార్చండి</label>
+                <textarea
+                  value={preview}
+                  onChange={e => setPreview(e.target.value)}
+                  rows={10}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 focus:outline-none focus:border-[#D4AF37] resize-none font-mono"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={sendWhatsApp}
+                disabled={!phone.trim() || !preview.trim()}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <MessageCircle size={16} />
+                వాట్సాప్ ద్వారా పంపించండి
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function ScheduleTab() {
   const { poojaTimings, setPoojaTimings } = useAppContext();
   
@@ -653,6 +892,7 @@ function ScheduleTab() {
 
   return (
     <div className="space-y-6">
+      <WhatsAppRemindersPanel poojaTimings={poojaTimings} />
       <Card className="glass !p-6">
         <h3 className="font-serif gold-text text-xl mb-4">Add Pooja / Event</h3>
         <form onSubmit={addEvent} className="space-y-3">
