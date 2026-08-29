@@ -140,9 +140,9 @@ export function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="hidden md:block relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl mt-auto">
+      <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-xl mt-auto mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-3 gap-8 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
             <div>
               <h3 className="font-serif gold-text font-bold mb-3 text-sm uppercase tracking-wider">Sri Ganga Ghanapathi</h3>
               <p className="text-white/50 text-xs leading-relaxed">Celebrating Ganesh Chavithi 2026 with devotion, community, and joy in Allagadda, Andhra Pradesh.</p>
@@ -170,16 +170,6 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
-
-      {/* Mobile Portfolio Credit */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 flex justify-center pb-1 pointer-events-none">
-        <p className="pointer-events-auto flex items-center gap-1 text-[9px] text-white/20">
-          Made with <Heart size={8} className="text-red-400" />
-          <a href="https://palurusubbanarasaiah.github.io/my_portfolio/" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors underline underline-offset-2 pointer-events-auto">
-            Paluru Subba Narasaiah
-          </a>
-        </p>
-      </div>
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-t border-white/10 safe-area-pb">
