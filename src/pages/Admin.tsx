@@ -3,7 +3,7 @@ import { Card } from '../components/ui';
 import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp, Bell, Info, AlertTriangle, CheckCircle, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
@@ -20,9 +20,9 @@ const tabContainerVariants = {
   exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } }
 };
 
 export default function Admin() {
