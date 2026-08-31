@@ -294,7 +294,7 @@ function DashboardTab({ setActiveTab }: { setActiveTab: (t: string) => void }) {
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#1a0d05', border: '1px solid rgba(242,125,38,0.2)', borderRadius: '8px' }}
                   itemStyle={{ color: '#F27D26' }}
-                  formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Donations']}
+                  formatter={(value) => [`₹${Number(value).toLocaleString()}`, 'Donations']}
                 />
                 <Area 
                   type="monotone" 
