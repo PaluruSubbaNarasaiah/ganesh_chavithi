@@ -5,7 +5,12 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = 'https://htgfsbmdmnzmjafglgdo.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0Z2ZzYm1kbW56bWphZmdsZ2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2Nzg0MjIsImV4cCI6MjEwMzI1NDQyMn0.jOAU_clsFhvL7zdb49f768EOAp9Vpc_2A_-6AkZTUF0';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Upload a profile image file to Supabase Storage, returns public URL or null
 export async function uploadProfileImage(file: File, folder: 'committee' | 'volunteers'): Promise<string | null> {
