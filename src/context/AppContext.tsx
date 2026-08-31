@@ -193,7 +193,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       })
       .subscribe();
-    return () => { supabase!.removeChannel(channel); };
+    return () => { channel.unsubscribe(); };
   }, []);
 
   // Setters — write to state + Supabase simultaneously
