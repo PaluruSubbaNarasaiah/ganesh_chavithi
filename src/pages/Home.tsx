@@ -2,34 +2,34 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Calendar, MapPin, Video, Image, Heart, Trophy, Megaphone, Users, Phone, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '../components/ui';
 import { useAppContext } from '../context/AppContext';
-import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
+import { motion, useScroll, useTransform, AnimatePresence, type Variants } from 'motion/react';
 import { ReactNode, useState } from 'react';
 import heroImage from '../assets/images/regenerated_image_1787252044935.png';
 
-const sectionVariants = {
+const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: { 
     opacity: 1, 
     y: 0,
     transition: { 
       duration: 0.8, 
-      ease: 'easeOut',
+      ease: 'easeOut' as const,
       staggerChildren: 0.2,
       delayChildren: 0.1
     } 
   }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { duration: 0.5, ease: 'easeOut' }
+    transition: { duration: 0.5, ease: 'easeOut' as const }
   }
 };
 
-const imageVariants = {
+const imageVariants: Variants = {
   hidden: { scale: 0.8, opacity: 0, y: 0 },
   visible: { 
     scale: 1, 
@@ -38,7 +38,7 @@ const imageVariants = {
     transition: {
       scale: { duration: 0.5 },
       opacity: { duration: 0.5 },
-      y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+      y: { duration: 4, repeat: Infinity, ease: 'easeInOut' as const, delay: 0.5 }
     }
   }
 };
