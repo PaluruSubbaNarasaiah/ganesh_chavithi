@@ -20,7 +20,6 @@ const fromLS = <T,>(key: string, fallback: T): T => {
 };
 
 async function sbGet(key: string) {
-  if (!supabase) return null;
   const { data, error } = await supabase
     .from('site_state')
     .select('value')
@@ -31,7 +30,6 @@ async function sbGet(key: string) {
 }
 
 async function sbSet(key: string, value: unknown) {
-  if (!supabase) return;
   const { error } = await supabase
     .from('site_state')
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
@@ -49,7 +47,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Restore session from Supabase on mount
   useEffect(() => {
-    if (!supabase) { setAdminLoading(false); return; }
     supabase.auth.getSession().then(({ data }) => {
       setIsAdminLoggedIn(!!data.session);
       setAdminLoading(false);
@@ -61,7 +58,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const adminLogin = useCallback(async (email: string, password: string): Promise<boolean> => {
-    if (!supabase) { setAdminLoginError('Supabase not configured.'); return false; }
     setAdminLoginError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setAdminLoginError(error.message); return false; }
@@ -69,7 +65,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const adminLogout = useCallback(async () => {
-    if (supabase) await supabase.auth.signOut();
+    await supabase.auth.signOut();
     setIsAdminLoggedIn(false);
   }, []);
 
@@ -174,7 +170,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Realtime: push Supabase changes to all open tabs/devices instantly
   useEffect(() => {
-    if (!supabase) return;
     const channel = supabase
       .channel('site_state_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_state' }, (payload: any) => {
@@ -198,7 +193,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { supabase!.removeChannel(channel); };
   }, []);
 
   // Setters — write to state + Supabase simultaneously
