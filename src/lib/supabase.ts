@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 // These are intentionally public — Supabase anon keys are designed for browser use.
 // Data is protected by Row Level Security (RLS) policies in Supabase, not by keeping this key secret.
 const SUPABASE_URL = 'https://htgfsbmdmnzmjafglgdo.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_zGoYo_VRiG_NUdcEJROJUg_DPyRgFXF';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0Z2ZzYm1kbW56bWphZmdsZ2RvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2Nzg0MjIsImV4cCI6MjEwMzI1NDQyMn0.jOAU_clsFhvL7zdb49f768EOAp9Vpc_2A_-6AkZTUF0';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
