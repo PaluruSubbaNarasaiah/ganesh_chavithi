@@ -86,9 +86,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [poojaTimings, setPoojaTimings] = useState(
     () => {
       const saved = fromLS<any[]>('gc_timings', defaultTimings);
-      // If saved has fewer days than default, merge: keep saved events, fill missing days from default
-      if (saved.length < defaultTimings.length) {
-        return defaultTimings.map((def, i) => saved[i] ? saved[i] : def);
+      // If saved data is missing dayTe (old format) or has wrong count, reset to default
+      if (!saved.length || saved.length !== defaultTimings.length || !saved[0]?.dayTe) {
+        return defaultTimings;
       }
       return saved;
     }
@@ -163,7 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDonations(merged);
       }
       if (live && typeof live === 'object') setLiveEvent(live);
-      if (Array.isArray(timings)) setPoojaTimings(timings);
+      if (Array.isArray(timings) && timings.length === defaultTimings.length && timings[0]?.dayTe) setPoojaTimings(timings);
       if (Array.isArray(gall)) setGallery(gall);
       if (Array.isArray(stors)) setStories(stors);
       if (Array.isArray(notifs)) setNotifications(notifs);
