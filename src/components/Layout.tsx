@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Image, MapPin, Video, Calendar, Settings, Languages, Heart, Phone, Mail, Bell, X, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -139,6 +139,9 @@ export function Layout({ children }: { children: ReactNode }) {
         </AnimatePresence>
       </main>
 
+      {/* Sponsors Marquee */}
+      <SponsorsMarquee />
+
       {/* Footer */}
       <footer className="border-t border-white/10 bg-black/40 backdrop-blur-xl mt-auto mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -198,5 +201,53 @@ function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: stri
         {label}
       </span>
     </Link>
+  );
+}
+
+function SponsorsMarquee() {
+  const { sponsors } = useAppContext();
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || sponsors.length === 0) return;
+    let x = 0;
+    let raf: number;
+    const speed = 0.5;
+    const step = () => {
+      x -= speed;
+      const half = track.scrollWidth / 2;
+      if (Math.abs(x) >= half) x = 0;
+      track.style.transform = `translateX(${x}px)`;
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [sponsors]);
+
+  if (sponsors.length === 0) return null;
+
+  const items = [...sponsors, ...sponsors]; // duplicate for seamless loop
+
+  return (
+    <div className="border-t border-white/10 bg-black/30 backdrop-blur-sm py-4 overflow-hidden mb-16 md:mb-0">
+      <p className="text-center text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] mb-3 font-bold">Our Sponsors</p>
+      <div className="overflow-hidden">
+        <div ref={trackRef} className="flex gap-8 w-max will-change-transform">
+          {items.map((s: any, i: number) => (
+            <div key={i} className="flex flex-col items-center gap-2 w-24 shrink-0">
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#D4AF37]/40 bg-black/40 flex items-center justify-center">
+                {s.photoUrl
+                  ? <img src={s.photoUrl} alt={s.name} className="w-full h-full object-cover" />
+                  : <span className="text-xl font-serif gold-text">{s.name?.charAt(0)}</span>
+                }
+              </div>
+              <p className="text-[10px] font-bold text-white/80 text-center truncate w-full">{s.name}</p>
+              {s.label && <p className="text-[9px] text-[#D4AF37] uppercase tracking-wider text-center truncate w-full">{s.label}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

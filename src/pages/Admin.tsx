@@ -125,6 +125,7 @@ export default function Admin() {
       case 'donations': return <DonationsTab />;
       case 'qrcodes': return <QrCodesTab />;
       case 'committee': return <CommitteeTab />;
+      case 'sponsors': return <SponsorsTab />;
       default: return <DashboardTab setActiveTab={setActiveTab} />;
     }
   };
@@ -175,6 +176,7 @@ export default function Admin() {
           <NavBtn active={activeTab === 'donations'} onClick={() => setActiveTab('donations')} icon={<Heart size={18} />} label="Donations" />
           <NavBtn active={activeTab === 'qrcodes'} onClick={() => setActiveTab('qrcodes')} icon={<QrCode size={18} />} label="QR Codes" />
           <NavBtn active={activeTab === 'committee'} onClick={() => setActiveTab('committee')} icon={<Users size={18} />} label="Committee" />
+          <NavBtn active={activeTab === 'sponsors'} onClick={() => setActiveTab('sponsors')} icon={<Heart size={18} />} label="Sponsors" />
         </div>
 
         {/* Mobile Nav Tabs (scrollable horizontal) */}
@@ -190,6 +192,7 @@ export default function Admin() {
            <NavBtn active={activeTab === 'donations'} onClick={() => setActiveTab('donations')} icon={<Heart size={16} />} label="Donations" mobile />
            <NavBtn active={activeTab === 'qrcodes'} onClick={() => setActiveTab('qrcodes')} icon={<QrCode size={16} />} label="QR" mobile />
            <NavBtn active={activeTab === 'committee'} onClick={() => setActiveTab('committee')} icon={<Users size={16} />} label="Team" mobile />
+           <NavBtn active={activeTab === 'sponsors'} onClick={() => setActiveTab('sponsors')} icon={<Heart size={16} />} label="Sponsors" mobile />
         </div>
 
         {/* Main Content Area */}
@@ -1930,6 +1933,102 @@ function ManageCard({ title, onClick }: { title: string, onClick: () => void }) 
     <div onClick={onClick} className="glass rounded-xl p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 hover:border-[#D4AF37]/50 transition-colors">
       <span className="font-bold text-xs uppercase tracking-wider gold-text">{title}</span>
       <Settings size={16} className="text-white/40" />
+    </div>
+  );
+}
+
+function SponsorsTab() {
+  const { sponsors, setSponsors } = useAppContext();
+  const [name, setName] = useState('');
+  const [label, setLabel] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name) return;
+    setUploading(true);
+    let photoUrl: string | null = null;
+    if (photoFile) {
+      photoUrl = await uploadProfileImage(photoFile, 'committee');
+    }
+    setSponsors([...sponsors, { id: Date.now().toString(), name, label, photoUrl }]);
+    setName(''); setLabel(''); setPhotoFile(null); setPhotoPreview(null);
+    setUploading(false);
+  };
+
+  const remove = (id: string) => {
+    if (window.confirm('Remove this sponsor?')) setSponsors(sponsors.filter((s: any) => s.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="glass !p-6">
+        <h3 className="font-serif gold-text text-xl mb-4">Add Sponsor</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex flex-col items-center gap-2">
+            <input type="file" accept="image/*" ref={fileRef} className="hidden" onChange={handlePhoto} />
+            <div
+              onClick={() => fileRef.current?.click()}
+              className="w-20 h-20 rounded-full border-2 border-dashed border-white/20 hover:border-[#D4AF37] transition-colors cursor-pointer overflow-hidden flex items-center justify-center bg-black/30"
+            >
+              {photoPreview
+                ? <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                : <div className="flex flex-col items-center text-white/40"><ImageIcon size={20} /><span className="text-[9px] mt-1">Photo</span></div>
+              }
+            </div>
+            <p className="text-[10px] text-white/40 uppercase tracking-wider">Profile photo (optional)</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Sponsor Name</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} required className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" placeholder="e.g. Ramesh Traders" />
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-white/50 mb-1">Label / Business (Optional)</label>
+              <input type="text" value={label} onChange={e => setLabel(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#D4AF37]" placeholder="e.g. Gold Sponsor" />
+            </div>
+          </div>
+          <button type="submit" disabled={uploading} className="w-full py-3 saffron-bg rounded-xl text-white font-bold uppercase tracking-wider text-xs disabled:opacity-60 flex items-center justify-center gap-2">
+            {uploading ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Uploading...</> : 'Add Sponsor'}
+          </button>
+        </form>
+      </Card>
+
+      <Card className="glass !p-6">
+        <h3 className="font-serif gold-text text-xl mb-4">Current Sponsors ({sponsors.length})</h3>
+        <div className="space-y-2">
+          {sponsors.length === 0 && <p className="text-white/30 text-xs italic p-4 text-center">No sponsors added yet.</p>}
+          {sponsors.map((s: any) => (
+            <div key={s.id} className="flex items-center gap-3 p-3 bg-black/40 rounded-xl border border-white/5">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 shrink-0 bg-black/40 flex items-center justify-center">
+                {s.photoUrl
+                  ? <img src={s.photoUrl} alt={s.name} className="w-full h-full object-cover" />
+                  : <span className="text-sm font-serif gold-text">{s.name?.charAt(0)}</span>
+                }
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-sm text-white/90">{s.name}</p>
+                {s.label && <p className="text-[10px] uppercase tracking-wider text-[#D4AF37] font-bold">{s.label}</p>}
+              </div>
+              <button onClick={() => remove(s.id)} className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600/40 rounded-lg transition-colors">
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
