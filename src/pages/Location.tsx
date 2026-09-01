@@ -1,49 +1,59 @@
 import { SectionTitle, Card } from '../components/ui';
 import { useAppContext } from '../context/AppContext';
-import { MapPin, Navigation, Car, Droplets, HeartPulse } from 'lucide-react';
+import { Navigation, Car, Droplets, HeartPulse } from 'lucide-react';
 
 export default function Location() {
   const { t } = useAppContext();
 
   return (
-    <div className="py-4 flex flex-col h-full">
+    <div className="py-4 flex flex-col gap-6">
       <SectionTitle title={t('locationTitle')} subtitle={t('locationSub')} />
 
-      <Card className="!p-1 overflow-hidden mb-6 flex-1 min-h-[300px] relative border-white/10">
-        <div className="w-full h-full min-h-[300px] bg-black/40 flex items-center justify-center rounded-xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}></div>
-          <div className="text-center z-10">
-            <MapPin size={48} className="mx-auto gold-text mb-2" />
-            <p className="font-bold text-sm uppercase tracking-wider">Map View</p>
-            <p className="text-xs text-white/50 mt-1">Sri Ganga Ghanapathi Pandal</p>
+      {/* Map + Amenities side by side */}
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Google Maps Embed */}
+        <div className="flex-1 rounded-2xl overflow-hidden border border-[#D4AF37]/30 min-h-[280px]" style={{ minHeight: 280 }}>
+          <iframe
+            title="Pandal Location"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3843.0!2d78.5!3d15.16!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTXCsDA5JzM2LjAiTiA3OMKwMzAnMDAuMCJF!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            width="100%"
+            height="100%"
+            style={{ border: 0, minHeight: 280, display: 'block' }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+
+        {/* Amenities */}
+        <div className="flex flex-col gap-3 md:w-44">
+          <div className="flex flex-col items-center justify-center p-4 glass rounded-2xl flex-1 gap-2">
+            <Car className="text-emerald-400" size={28} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-center text-white/80">{t('parkingAvailable')}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center p-4 glass rounded-2xl flex-1 gap-2">
+            <Droplets className="text-blue-400" size={28} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-center text-white/80">{t('drinkingWater')}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center p-4 glass rounded-2xl flex-1 gap-2">
+            <HeartPulse className="text-red-400" size={28} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-center text-white/80">{t('medicalHelp')}</span>
           </div>
         </div>
-      </Card>
+      </div>
 
+      {/* Open in Google Maps button */}
       <a
-        href="https://maps.google.com"
+        href="https://maps.google.com/?q=Allagadda,Andhra+Pradesh"
         target="_blank"
         rel="noopener noreferrer"
-        className="w-full py-4 rounded-xl saffron-bg text-white font-bold flex items-center justify-center gap-2 mb-8 shadow-[0_0_20px_rgba(242,125,38,0.3)] hover:shadow-[0_0_30px_rgba(242,125,38,0.5)] transition-shadow"
+        className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 text-white text-base"
+        style={{ background: '#F27D26', boxShadow: '0 0 24px rgba(242,125,38,0.45)' }}
       >
         <Navigation size={20} /> {t('openMaps')}
       </a>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="flex flex-col items-center p-4 glass rounded-xl">
-          <Car className="text-emerald-400 mb-2" size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-center">{t('parkingAvailable')}</span>
-        </div>
-        <div className="flex flex-col items-center p-4 glass rounded-xl">
-          <Droplets className="text-blue-400 mb-2" size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-center">{t('drinkingWater')}</span>
-        </div>
-        <div className="flex flex-col items-center p-4 glass rounded-xl">
-          <HeartPulse className="text-red-400 mb-2" size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-center">{t('medicalHelp')}</span>
-        </div>
-      </div>
-
+      {/* Contact */}
       <SectionTitle title={t('contactUs')} subtitle={t('contactSub')} />
       <div className="space-y-3 pb-8">
         <Card className="!p-4 flex items-center justify-between">
