@@ -15,13 +15,13 @@ export default function Location() {
         <div className="flex-1 rounded-2xl overflow-hidden border border-[#D4AF37]/30 min-h-[280px]" style={{ minHeight: 280 }}>
           <iframe
             title="Pandal Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3843.0!2d78.5!3d15.16!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTXCsDA5JzM2LjAiTiA3OMKwMzAnMDAuMCJF!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d230.8946616386632!2d78.51625587485859!3d15.135229801981305!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb45d0ec179de5b%3A0x75a82fafedce6b06!2sGANGAMMA%20TEMPLE!5e1!3m2!1sen!2sin!4v1788439775839!5m2!1sen!2sin"
             width="100%"
             height="100%"
             style={{ border: 0, minHeight: 280, display: 'block' }}
             allowFullScreen
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
+            referrerPolicy="strict-origin-when-cross-origin"
           />
         </div>
 

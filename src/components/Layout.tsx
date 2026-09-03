@@ -194,7 +194,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </motion.div>
         )}
       </AnimatePresence>
-      <main className="flex-1 flex flex-col w-full max-w-7xl mx-auto p-4 pb-4 md:pb-4" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
+      <main className="relative z-10 flex-1 flex flex-col w-full max-w-7xl mx-auto p-4 pb-4 md:pb-4" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
