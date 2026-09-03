@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui';
 import { Users, QrCode, Heart, Trophy, Settings, LogOut, Plus, Trash2, Megaphone, Calendar, Image as ImageIcon, BookOpen, Video, LayoutDashboard, Edit2, X, Check, TrendingUp, Bell, Info, AlertTriangle, CheckCircle, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -31,6 +31,31 @@ export default function Admin() {
   const [loginPassword, setLoginPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    // Switch manifest to admin-specific one so "Install" adds admin app to home screen
+    const link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+    const prev = link?.href;
+    if (link) link.href = '/admin-manifest.json';
+    return () => { if (link && prev) link.href = prev; };
+  }, []);
+
+  useEffect(() => {
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  };
 
   if (adminLoading) {
     return (
@@ -68,6 +93,15 @@ export default function Admin() {
             </div>
             <h2 className="text-2xl font-serif font-bold gold-text">Admin Login</h2>
             <p className="text-white/50 text-xs uppercase tracking-widest mt-2">Committee Members Only</p>
+            {installPrompt && (
+              <button
+                type="button"
+                onClick={handleInstall}
+                className="mt-4 px-4 py-2 rounded-full bg-[#D4AF37] text-black text-[10px] font-bold uppercase tracking-wider hover:bg-[#F27D26] hover:text-white transition-colors"
+              >
+                Install Admin App
+              </button>
+            )}
           </div>
           
           <form
@@ -156,9 +190,19 @@ export default function Admin() {
             <h1 className="font-bold text-lg gold-text font-serif">Committee Admin</h1>
             <p className="text-[10px] uppercase tracking-widest text-white/50">Ganesh Chavithi 2026</p>
           </div>
-          <button onClick={adminLogout} className="p-2 text-white/50 hover:text-white transition-colors">
-            <LogOut size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            {installPrompt && (
+              <button
+                onClick={handleInstall}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#D4AF37] text-black text-[10px] font-bold uppercase tracking-wider hover:bg-[#F27D26] hover:text-white transition-colors"
+              >
+                <span>⬇</span> Install App
+              </button>
+            )}
+            <button onClick={adminLogout} className="p-2 text-white/50 hover:text-white transition-colors">
+              <LogOut size={20} />
+            </button>
+          </div>
         </div>
       </header>
 
