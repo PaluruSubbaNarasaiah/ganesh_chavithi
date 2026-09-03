@@ -226,6 +226,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 {[['/', 'Home'], ['/schedule', 'Pooja Schedule'], ['/gallery', 'Gallery'], ['/donate', 'Donate'], ['/volunteer', 'Volunteer'], ['/committee', 'Committee & Volunteers']].map(([to, label]) => (
                   <Link key={to} to={to} className="block text-xs text-white/50 hover:text-[#D4AF37] transition-colors">{label}</Link>
                 ))}
+                <Link to="/admin" className="block text-xs text-white/50 hover:text-[#D4AF37] transition-colors">Admin Login</Link>
               </div>
             </div>
             <div>
