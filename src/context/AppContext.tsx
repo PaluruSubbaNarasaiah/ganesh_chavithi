@@ -187,7 +187,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (key === 'stories' && Array.isArray(value)) setStories(value);
         if (key === 'liveEvent' && value) setLiveEvent(value);
         if (key === 'volunteers' && Array.isArray(value)) setVolunteers(value);
-        if (key === 'notifications' && Array.isArray(value)) setNotifications(value);
+        if (key === 'notifications' && Array.isArray(value)) {
+          setNotifications(value);
+          // Fire browser push notification for the newest entry
+          if (value.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+            const latest = value[0];
+            new Notification('🐘 Ganesh Chavithi 2026', {
+              body: latest.message,
+              icon: '/icons/icon-192.png',
+              badge: '/icons/icon-192.png',
+              tag: latest.id,
+            });
+          }
+        }
         if (key === 'qrCodes' && Array.isArray(value)) setQrCodes(value);
         if (key === 'sponsors' && Array.isArray(value)) setSponsors(value);
         if (key === 'donations' && Array.isArray(value)) {

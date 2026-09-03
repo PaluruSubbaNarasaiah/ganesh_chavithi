@@ -1,10 +1,11 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image, MapPin, Video, Calendar, Settings, Languages, Heart, Phone, Mail, Bell, X, Info, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Home, Image, MapPin, Video, Calendar, Settings, Languages, Heart, Phone, Mail, Bell, X, Info, AlertTriangle, CheckCircle, Download, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppContext } from '../context/AppContext';
 import logoImage from '../assets/images/regenerated_image_1787252044935.png';
 import bgImage from '../assets/images/regenerated_image_1787252044935.png';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -13,7 +14,44 @@ export function Layout({ children }: { children: ReactNode }) {
   const [dismissed, setDismissed] = useState<string[]>([]);
   const activeNotifs = (notifications as any[]).filter((n: any) => !dismissed.includes(n.id));
   const unreadCount = activeNotifs.length;
-  
+
+  // PWA install prompt
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstall, setShowInstall] = useState(false);
+  const [pushGranted, setPushGranted] = useState(false);
+  const [showPushBanner, setShowPushBanner] = useState(false);
+
+  // SW auto-update
+  const { updateServiceWorker } = useRegisterSW({
+    onNeedRefresh() { updateServiceWorker(true); },
+  });
+
+  useEffect(() => {
+    const handler = (e: any) => { e.preventDefault(); setInstallPrompt(e); setShowInstall(true); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') setShowPushBanner(true);
+      if (Notification.permission === 'granted') setPushGranted(true);
+    }
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setShowInstall(false);
+  };
+
+  const handleEnablePush = async () => {
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') { setPushGranted(true); setShowPushBanner(false); }
+    else setShowPushBanner(false);
+  };
+
   const isSetup = location.pathname.startsWith('/admin');
 
   if (isSetup) {
@@ -79,6 +117,38 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+
+      {/* PWA Install Banner */}
+      <AnimatePresence>
+        {showInstall && (
+          <motion.div initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }}
+            className="z-40 bg-[#F27D26] text-white px-4 py-2 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Download size={16} /> Install App for offline access & notifications
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleInstall} className="bg-white text-[#F27D26] px-3 py-1 rounded-full text-xs font-bold">Install</button>
+              <button onClick={() => setShowInstall(false)} className="text-white/70 hover:text-white"><X size={16} /></button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Push Notification Banner */}
+      <AnimatePresence>
+        {showPushBanner && !pushGranted && (
+          <motion.div initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }}
+            className="z-40 bg-[#1a0d05] border-b border-[#D4AF37]/30 px-4 py-2 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-white/80">
+              <BellRing size={14} className="text-[#D4AF37]" /> Enable notifications to get live updates from admin
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleEnablePush} className="bg-[#D4AF37] text-black px-3 py-1 rounded-full text-xs font-bold">Enable</button>
+              <button onClick={() => setShowPushBanner(false)} className="text-white/40 hover:text-white"><X size={14} /></button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Notification Panel — anchored below sticky header, does not push content */}
       <AnimatePresence>
