@@ -280,32 +280,36 @@ function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: stri
 function SponsorsMarquee() {
   const { sponsors } = useAppContext();
   const trackRef = useRef<HTMLDivElement>(null);
+  const xRef = useRef(0);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     const track = trackRef.current;
     if (!track || sponsors.length === 0) return;
-    let x = 0;
-    let raf: number;
+    xRef.current = 0;
     const speed = 0.5;
     const step = () => {
-      x -= speed;
+      xRef.current -= speed;
+      // half = one full set of sponsors width
       const half = track.scrollWidth / 2;
-      if (Math.abs(x) >= half) x = 0;
-      track.style.transform = `translateX(${x}px)`;
-      raf = requestAnimationFrame(step);
+      if (Math.abs(xRef.current) >= half) xRef.current = 0;
+      track.style.transform = `translateX(${xRef.current}px)`;
+      rafRef.current = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
   }, [sponsors]);
 
   if (sponsors.length === 0) return null;
 
-  const items = [...sponsors, ...sponsors]; // duplicate for seamless loop
+  // Repeat enough copies so the track is always wider than the viewport
+  const copies = Math.max(2, Math.ceil(20 / sponsors.length));
+  const items = Array.from({ length: copies }, () => sponsors).flat();
 
   return (
-    <div className="border-t border-white/10 bg-black/30 backdrop-blur-sm py-4 overflow-hidden">
+    <div className="w-full border-t border-white/10 bg-black/30 backdrop-blur-sm py-4">
       <p className="text-center text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] mb-3 font-bold">Our Sponsors</p>
-      <div className="overflow-hidden">
+      <div className="w-full overflow-hidden">
         <div ref={trackRef} className="flex gap-8 w-max will-change-transform">
           {items.map((s: any, i: number) => (
             <div key={i} className="flex flex-col items-center gap-2 w-24 shrink-0">
